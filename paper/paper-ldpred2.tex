@@ -1,0 +1,144 @@
+%% LyX 1.3 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english, 12pt]{article}
+\usepackage{times}
+%\usepackage{algorithm2e}
+\usepackage{url}
+\usepackage{bbm}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,letterpaper,tmargin=2cm,bmargin=2cm,lmargin=1.5cm,rmargin=1.5cm}
+\usepackage{rotating}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{setspace}
+\usepackage{lineno}
+\usepackage{hyperref}
+\usepackage{bbm}
+\usepackage{makecell}
+
+%\renewcommand{\arraystretch}{1.8}
+
+\usepackage{xr}
+\externaldocument{paper-ldpred2-supp}
+
+%\linenumbers
+%\doublespacing
+\onehalfspacing
+%\usepackage[authoryear]{natbib}
+\usepackage{natbib} \bibpunct{(}{)}{;}{author-year}{}{,}
+
+%Pour les rajouts
+\usepackage{color}
+\definecolor{trustcolor}{rgb}{0,0,1}
+
+\usepackage{dsfont}
+\usepackage[warn]{textcomp}
+\usepackage{adjustbox}
+\usepackage{multirow}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\DeclareMathOperator*{\argmin}{\arg\!\min}
+
+\let\tabbeg\tabular
+\let\tabend\endtabular
+\renewenvironment{tabular}{\begin{adjustbox}{max width=0.9\textwidth}\tabbeg}{\tabend\end{adjustbox}}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Bold symbol macro for standard LaTeX users
+%\newcommand{\boldsymbol}[1]{\mbox{\boldmath $#1$}}
+
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+\usepackage{babel}
+\makeatother
+
+
+\begin{document}
+
+
+\title{Efficient toolkit implementing best practices for principal component analysis of population genetic data}
+\author{Florian Priv\'e,$^{\text{1,}*}$ and Bjarni J. Vilhj\'almsson$^{\text{1,}*}$}
+
+\date{~ }
+\maketitle
+
+\noindent$^{\text{\sf 1}}$National Centre for Register-Based Research, Aarhus University, Aarhus, 8210, Denmark. \\
+\noindent$^\ast$To whom correspondence should be addressed.\\
+
+\noindent Contacts:
+\begin{itemize}
+\item \url{florian.prive.21@gmail.com}
+\item \url{bjv@econ.au.dk}
+\end{itemize}
+
+\clearpage
+
+\abstract{	
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+
+\section{Introduction}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Material and Methods}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Results}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Discussion}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\clearpage
+\vspace*{5em}
+
+\section*{Software and code availability}
+
+%All code used for this paper is available at \url{https://github.com/privefl/paper4-bedpca/tree/master/code}.
+%R packages bigsnpr and bigutilsr can be installed from either CRAN or GitHub (see \url{https://github.com/privefl/bigsnpr}).
+%A tutorial on the steps to perform PCA on 1000G data is available at \url{https://privefl.github.io/bigsnpr/articles/bedpca.html}. 
+
+\section*{Acknowledgements}
+
+This research has been conducted using the UK Biobank Resource under Application Number 41181.
+
+F.P. and B.V.\ are supported by the Danish National Research Foundation (Niels Bohr Professorship to Prof. John McGrath), and also acknowledge the Lundbeck Foundation Initiative for Integrative Psychiatric Research, iPSYCH (R248-2017-2003).
+
+\section*{Declaration of Interests}
+
+The authors declare no competing interests.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+
+\bibliographystyle{natbib}
+\bibliography{refs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
