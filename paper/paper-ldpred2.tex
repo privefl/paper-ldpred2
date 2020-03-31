@@ -64,12 +64,13 @@
 
 
 \title{LDpred2: better, faster, stronger}
-\author{Florian Priv\'e,$^{\text{1,}*}$ and Bjarni J. Vilhj\'almsson$^{\text{1,}*}$}
+\author{Florian Priv\'e,$^{\text{1,}*}$ Julyan Arbel,$^{\text{2}}$ and Bjarni J. Vilhj\'almsson$^{\text{1,}*}$}
 
 \date{~ }
 \maketitle
 
 \noindent$^{\text{\sf 1}}$National Centre for Register-Based Research, Aarhus University, Aarhus, 8210, Denmark. \\
+\noindent$^{\text{\sf 2}}$Univ.\ Grenoble Alpes, Inria, CNRS, Grenoble INP, LJK, Grenoble, 38000, France. \\
 \noindent$^\ast$To whom correspondence should be addressed.\\
 
 \noindent Contacts:
@@ -106,20 +107,16 @@ It may also be very unstable in long-range LD regions such as the human leukocyt
 LDpred is also considered not particularly fast, nor memory-efficient, nor it provides truly sparse models as in its model specification.
 
 Here, we present LDpred2, a new version of LDpred, that aims to cope with the issues presented before.
+We provide a faster and more robust implementation of LDpred in R package bigsnpr \cite[]{prive2017efficient}.
+We also provide two new options: a ``sparse'' option, where LDpred2 truly fit some effects to be zero, therefore providing a sparse vector of effects; and an ``auto'' option, where LDpred2 automatically estimates the sparsity $p$ and the (SNP) heritability $h^2$, therefore for which there is no need for validation data to choose hyper-parameters performing best.
 We show that [DESCRIBE RESULTS].
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{Material and Methods}
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Results}
 
-\subsection{Overview of Methods}
+\subsection*{Overview of Methods}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -130,8 +127,78 @@ We show that [DESCRIBE RESULTS].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%\clearpage
-\vspace*{5em}
+\section{Online Methods}
+
+\subsection*{Overview of LDpred model}
+
+LDpred assumes the following model for effect sizes,
+\begin{equation}\label{eq:model}
+\beta_j \sim \left\{
+\begin{array}{ll}
+\mathcal N\left(0, \dfrac{h^2}{M p}\right) & \mbox{with probably $p$,} \\
+0 & \mbox{otherwise,}
+\end{array}
+\right.
+\end{equation}
+where $p$ is the proportion of causal variants, $M$ the number of variants and $h^2$ the (SNP) heritability.
+\cite{vilhjalmsson2015modeling} estimates $h^2$ using constrained LD score regression (intercept fixed to 1) and recommend testing a grid of hyper-parameter values for $p$ (e.g.\ 1, 0.3, 0.1, 0.03, 0.01, etc.).
+
+\newcommand{\hmpn}{\dfrac{h^2}{M p} + \dfrac{1}{N}}
+\newcommand{\phmpn}{\dfrac{p}{\sqrt{\hmpn}}}
+\newcommand{\betahmpn}{\dfrac{\tilde{\beta}_j^2}{\hmpn}}
+
+To estimate effect sizes $\beta_j$, \cite{vilhjalmsson2015modeling} use a Gibbs sampler [REALLY A GS?]. They compute the probability that variant $j$ is causal as 
+\[\bar{p}_j = P\left(\beta_j \sim \mathcal N(\cdot,\cdot) ~|~ \tilde{\beta}_j\right) = \dfrac{\phmpn \exp\left\lbrace-\dfrac{1}{2} \betahmpn\right\rbrace}{\phmpn \exp\left\lbrace-\dfrac{1}{2} \betahmpn\right\rbrace + \dfrac{1-p}{\sqrt{\dfrac{1}{N}}} \exp\left\lbrace-\dfrac{1}{2} \dfrac{\tilde{\beta}_j^2}{\dfrac{1}{N}}\right\rbrace}~,\]
+which we rewrite as
+\begin{equation}
+\bar{p}_j = \dfrac{1}{1 + \dfrac{1-p}{p} \sqrt{1 + \dfrac{N h^2}{Mp}} \exp\left\lbrace-\dfrac{1}{2} \dfrac{N \tilde{\beta}_j^2}{1 + \dfrac{Mp}{N h^2}}\right\rbrace}~.
+\end{equation}
+
+Then, $\beta_j$ is sampled according to
+\begin{equation}\label{eg:beta_random}
+\beta_j ~|~ \tilde{\beta}_j \sim \left\{
+\begin{array}{ll}
+\mathcal N\left(\dfrac{1}{1 + \dfrac{M p}{N h^2}} \tilde{\beta}_j, \dfrac{1}{1 + \dfrac{M p}{N h^2}}\dfrac{1}{N}\right) & \mbox{with probably $\bar{p}_j$,} \\
+0 & \mbox{otherwise.}
+\end{array}
+\right.
+\end{equation}
+
+[TO COMPLETE + CLEARER -> SHOULD SHOW THAT IT IS ITERATIVE]
+
+\subsection*{New LDpred2 models}
+
+LDpred2 comes with two extensions of the LDpred model.
+
+The first extension consists in estimating $p$ and $h^2$ in the model, as opposed to testing several values of $p$ and estimating $h2$ using constrained LD score regression \cite[]{bulik2015ld}. This makes LDpred2-auto a method free of hyper-parameters which can therefore directly be applied to data without the need of a validation dataset to choose best-performing hyper-parameters.
+To estimate $p$, we count the number of causal variants (i.e.\ $S = \sum_j(\beta_j \neq 0)$ in equation \ref{eg:beta_random}). 
+We can assume that $S \sim B(M, p)$, so if we place a prior $p \sim \text{Beta}(1, 1) \equiv \mathcal{U}(0, 1)$, we can sample $p$ from the conjugate prior $p \sim \text{Beta}(1 + S, 1 + M - S)$.
+Due to complexity reasons, we could not derive a Bayesian estimator of $h^2$. Instead, we estimate $h^2 = \beta^T K \beta$, where $K$ is the correlation matrix.
+
+The second extension, LDpred2-sparse, aims at providing sparse effect size estimates, i.e. that some resulting effects are exactly 0.
+When the sparse solution is sought and when $\bar{p}_j < p$, we set $\beta_j = 0$.
+Note that LDpred2-auto does not have a sparse option, but it is possible to run LDpred2-sparse with the $p$ and $h^2$ estimates from LDpred2-auto.
+
+\subsection*{New strategy for local correlation}
+
+LDpred has a window size parameter that needs to be set; for a given variant, correlations with other variants outside of this window are assumed to be 0.
+The recommended value for this window (in number of variants) is to use the total number of variants divided by 3000, which corresponds to a window radius of around 2 Mb \cite[]{vilhjalmsson2015modeling}.
+After investigating, we come to the conclusion that this window size is not large enough. Indeed, the human leukocyte antigen (HLA) region of chromosome 6 is 8 Mb long \cite[]{price2008long}. 
+Using a window of 8Mb would be computationally and memory inefficient.
+Instead, we propose to use genetic distances. Genome-wide, 1 Mb corresponds on average to 1 cM. Yet, the HLA region is only 3 cM long (vs.\ 8 Mb long).
+Therefore, genetic distances enable to capture the same LD at a smaller distance.
+We provide function \texttt{snp\_asGeneticPos()} in package bignspr to easily interpolate physical position to genetic positions.
+We recommend to use genetic positions and to use a size parameter of 3 cM when computing the correlation between variants for LDpred2. 
+Note that, in the code, we use \texttt{size = 3 / 1000} as parameter \texttt{size} is internally multiplied by 1000 in functions of package bigsnpr.
+
+\subsection*{New strategy for other hyper-parameters}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+%\vspace*{5em}
 
 \section*{Software and code availability}
 
