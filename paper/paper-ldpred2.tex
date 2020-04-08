@@ -129,6 +129,29 @@ We show that [DESCRIBE RESULTS].
 
 \section{Online Methods}
 
+\subsection*{From marginal effects to joint effects}
+
+In this section, we explain how we can obtain joint effects from summary statistics (marginal effects) and a correlation matrix.
+Let us denote by $S$ the diagonal matrix with standard deviations of the $p$ variants, $C_n = I_n - 1 1^T / n$ the centering matrix, $G$ the genotype matrix of $n$ individuals and $p$ variants, and $y$ the phenotype vector for $n$ individuals.
+Then, the marginal effects (assuming no other covariates than the intercept) are given by 
+\[\hat{\beta}_{marg} = S^{-2} G^T C_n y ~,\]
+while the joint effects are obtained by solving
+\[\begin{bmatrix} \hat{\alpha} \\ \hat{\beta}_{joint} \end{bmatrix} = \left(\begin{bmatrix} 1 & G \end{bmatrix}^T \begin{bmatrix} 1 & G \end{bmatrix}\right)^{-1} \begin{bmatrix} 1 & G \end{bmatrix}^T y ~.\]
+Using the Woodburry formula, we get 
+\[\hat{\beta}_{joint} = (G^T C_n G)^{-1} G^T C_n y ~.\]
+We further note that the correlation matrix of $G$ is \(K =  S^{-1} G^T C_n G  S^{-1}\).
+Then we get $\hat{\beta}_{joint} = S^{-1} K^{-1} S \hat{\beta}_{marg}$.
+
+For one marginal effect $\hat{\beta}$, let us denote by $y^*$ and $g^*$ the corresponding phenotype and genotype (residualized from $K$ covariates, e.g.\ centering them).
+Then,
+$\text{var}(\hat{\beta}) = \dfrac{(y^* - \hat{\beta} g^*)^T (y^* - \hat{\beta} g^*)}{(N - K - 1) ~ g^{*T} g^*} \approx \dfrac{y^{*T} y^*}{N ~ g^{*T} g^*} \approx \dfrac{\text{var}(y)}{N ~ \text{var}(g)}$.
+Thus, we can derive $\text{sd}(g) \approx \dfrac{\text{sd}(y)}{\text{sd}(\hat{\beta}) ~ \sqrt{N}}$ and $\left(\text{sd}(g) ~ \hat{\beta}\right) \approx \dfrac{\hat{\beta}}{\text{sd}(\hat{\beta})} \dfrac{\text{sd}(y)}{\sqrt{N}}$.
+
+Let us go back to the formula we derived before: $\hat{\beta}_{joint} = S^{-1} K^{-1} S \hat{\beta}_{marg}$. As $\text{sd}(y)$ is the same for all variants, it is cancelled out by $S^{-1}$ and $S$. Then it justifies the use of Z-scores ($\hat{\beta} / \text{sd}(\hat{\beta})$) divided by $\sqrt{N}$ as input for LDpred. Then, the effect sizes that LDpred outputs need to be scaled by multiplying by $\left(\text{sd}(\hat{\beta}) ~ \sqrt{N}\right)$.
+Note that LDpred (v1) and other similar methods scale the output dividing by the standard deviation of genotypes. This is correct when $\text{sd}(y) = 1$ only.
+
+
+
 \subsection*{Overview of LDpred model}
 
 LDpred assumes the following model for effect sizes,
@@ -186,13 +209,54 @@ The recommended value for this window (in number of variants) is to use the tota
 After investigating, we come to the conclusion that this window size is not large enough. Indeed, the human leukocyte antigen (HLA) region of chromosome 6 is 8 Mb long \cite[]{price2008long}. 
 Using a window of 8Mb would be computationally and memory inefficient.
 Instead, we propose to use genetic distances. Genome-wide, 1 Mb corresponds on average to 1 cM. Yet, the HLA region is only 3 cM long (vs.\ 8 Mb long).
-Therefore, genetic distances enable to capture the same LD at a smaller distance.
+Therefore, genetic distances enable to capture the same LD using a globally smaller window.
 We provide function \texttt{snp\_asGeneticPos()} in package bignspr to easily interpolate physical position to genetic positions.
 We recommend to use genetic positions and to use a size parameter of 3 cM when computing the correlation between variants for LDpred2. 
 Note that, in the code, we use \texttt{size = 3 / 1000} as parameter \texttt{size} is internally multiplied by 1000 in functions of package bigsnpr.
 
-\subsection*{New strategy for other hyper-parameters}
+\subsection*{New strategy for running LDpred2}
 
+We recommend to run LDpred2 per chromosome.
+Even if it is possible to run LDpred2 genome-wide, this approach has two limitations. First, it can be memory and computationally demanding to do so. For around one million (1M) variants, storing the 1M$\times$1M sparse correlation matrix takes more than 32 GB of memory. 
+Doubling to 2M variants would require 128 GB of RAM to store the matrix.
+Second, as noted in \cite{prive2019making}, it may be beneficial to assume that architecture of traits may be different for different chromosomes.
+For example, autoimmune diseases clearly show larger effects on chromosome 6. compared to other chromosomes.
+Assuming the same model for genetic effects genome-wide could results in severe model misspecification, which would lead to suboptimal predictive performance.
+Moreover, since the inverse of a block-diagonal matrix is formed from the inverse of each block, it should be safe to run LDpred2 for each chromosome and then combining the results.  
+
+\subsection*{Simulation analyses}
+
+We use the UK Biobank data for both real data analyses and simulations. We restrict individuals to White-British individuals used in the PC computation of the UK Biobank (i.e.\ unrelated and quality-controlled). We restrict variants to HapMap3 variants.
+This results in 337,475 individuals and 1,194,574 variants.
+We use 10,000 individuals as a validation set for choosing optimal hyper-parameters and computing correlations between variants. 
+We use 300,000 other individuals for running logistic GWAS to create summary statistics.
+We use the remaining 27,475 individuals as test set for evaluating models.
+
+\subsection*{Real data analyses}
+
+We use the same data as in the simulation analyses. We use the same 10,000 individuals as validation set, and use the remaining 327,475 individuals as test set.
+We use external published GWAS summary statistics listed in table \ref{tab:sumstats}.
+We defined phenotypes as done in \cite{prive2019making}. For details, please refer to our R code (Software and code availability section).
+
+%% TABLE 1 HERE
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l|c|c|c|c|}
+		\hline
+		Trait & GWAS citation & GWAS sample size & GWAS \#variants \\
+		\hline
+		Breast cancer (BRCA) & \cite{michailidou2017association} & 137,045 / 119,078 & 11,792,542 \\
+		Rheumatoid arthritis (RA) & \cite{okada2014genetics} & ~~29,880 / ~~73,758 & ~~9,739,303 \\
+		Type 1 diabetes (T1D) & \cite{censin2017childhood} & ~~~~~5913 / ~~~~~8828  & ~~8,996,866 \\
+		Type 2 diabetes (T2D) & \cite{scott2017expanded} & ~~26,676 / 132,532 & 12,056,346 \\
+		Prostate cancer (PRCA) & \cite{schumacher2018association} & ~~79,148 / ~~61,106 & 20,370,946 \\
+		Depression (MDD) & \cite{wray2018genome} & ~~59,851 / 113,154 & 13,554,550 \\
+		Coronary artery disease (CAD) & \cite{nikpay2015comprehensive} & ~~60,801 / 123,504 & ~~9,455,778 \\
+		Asthma & \cite{demenais2018multiancestry} & ~~19,954 / 107,715 & ~~2,001,280 \\
+		\hline
+	\end{tabular}
+	\caption{Summary of external GWAS summary statistics used. The GWAS sample size is the number of cases / controls in the GWAS. \label{tab:sumstats}}
+\end{table}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -202,9 +266,9 @@ Note that, in the code, we use \texttt{size = 3 / 1000} as parameter \texttt{siz
 
 \section*{Software and code availability}
 
-%All code used for this paper is available at \url{https://github.com/privefl/paper4-bedpca/tree/master/code}.
-%R packages bigsnpr and bigutilsr can be installed from either CRAN or GitHub (see \url{https://github.com/privefl/bigsnpr}).
-%A tutorial on the steps to perform PCA on 1000G data is available at \url{https://privefl.github.io/bigsnpr/articles/bedpca.html}. 
+All code used for this paper is available at \url{https://github.com/privefl/paper-ldpred2/tree/master/code}.
+R package bigsnpr can be installed from either CRAN or GitHub (see \url{https://github.com/privefl/bigsnpr}).
+A tutorial on the steps to run LDpred2 using some small example data is available at \url{https://privefl.github.io/bigsnpr/articles/LDpred2.html}. 
 
 \section*{Acknowledgements}
 

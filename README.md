@@ -1,2 +1,3 @@
 # paper-ldpred2
-Paper discribing LDpred2
+
+Paper describing LDpred2
