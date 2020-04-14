@@ -40,7 +40,7 @@
 \usepackage{adjustbox}
 \usepackage{multirow}
 \usepackage{graphicx}
-\graphicspath{{figures/}}
+\graphicspath{{../figures/}}
 \DeclareMathOperator*{\argmin}{\arg\!\min}
 
 \let\tabbeg\tabular
@@ -116,8 +116,53 @@ We show that [DESCRIBE RESULTS].
 
 \section{Results}
 
-\subsection*{Overview of Methods}
+\subsection*{Overview of methods}
 
+Here we present LDpred2, a new version of LDpred \cite[]{vilhjalmsson2015modeling}.
+LDpred2 has 4 options: 1) LDpred2-inf, an infinitesimal model similar to the one in LDpred1; 2) LDpred2-grid (or simply LDpred2) that is the main LDpred model, where a grid of values for hyper-parameters $p$ (the proportion of causal variants) and $h^2$ (the SNP heritability) are tuned using a validation test; 3) LDpred3-sparse, which is similar to LDpred2-grid but where effects can be exactly 0, offering a truly sparse version of LDpred; 4) LDpred2-auto, which automatically estimate $p$ and $h^2$ and therefore is free of hyper-parameter to optimize.
+As a recall, LDpred1 has two options: LDpred1-inf and LDpred1-grid, where only $p$ is optimized.
+
+We compare the two versions of LDpred using 6 simulation scenarios to understand in which cases it is important to use the new version. We also compare these two versions in 8 binary phenotypes of major interest using published external summary statistics and the UK Biobank data.
+
+\subsection*{Simulations}
+
+Figure \ref{fig:AUC-simu} presents the simulation results comparing LDpred1 (v1.0.0 as implemented by \cite{vilhjalmsson2015modeling}) with the new LDpred2 (as implemented in R package bigsnpr). 
+6 simulation scenarios are used, each repeated 10 times.
+In the first 4 simulations scenarios, a heritability of 40\% and a prevalence of 15\% are used. We simulate 300, 3000, 30,000 or 300,000 causal variants anywhere on the genome. 
+In these scenarios, infinitesimal models are performing similarly. When testing a grid of parameters, LDpred2 performed substantially better than LDpred1 in the cases where the number of causal variations is smaller, i.e.\ in the case of 300 or 3000 causal variants ($p$=2.5e-4 and 2.5e-3). For example, in simulations with 300 causal variants, AUC of 73.5\% is obtained with LDpred1 while an AUC of 81.9\% is obtained with LDpred2.
+In these scenarios, all 3 non-infinitesimal models of LDpred2 perform equally well.
+In HLA scenarios, i.e.\ where causal variants are sampled in a region with variants at high LD, LDpred1 perform poorly. In these HLA scenarios, all LDpred2 models perform well, although LDpred2-auto perform slightly worse than other models.
+
+%% FIGURE 1 HERE
+\begin{figure}[h]
+\centerline{\includegraphics[width=0.95\textwidth]{AUC-simu}}
+\caption{Results of the 6 simulation scenarios. 
+Scenarios are named with 4 parts, separated by underscore: 1) ``all'' means that causal variants were randomly sampled anywhere on the genome while ``HLA'' means that they were sampled in the HLA region of chromosome 6 (25-35 Mb); 2) the heritability (in \%); 3) the number of causal variants; 4) the prevalence (in \%).
+Bars present the mean and 95\% CI of $10^4$ non-parametric bootstrap replicates of the mean AUC of 10 simulations for each scenario. 
+%See corresponding values in table S1.
+}
+\label{fig:AUC-simu}
+\end{figure}
+
+\subsection*{Real data}
+
+Figure \ref{fig:AUC-real} presents the results of real data applications comparing LDpred1 (v1.0.0 as implemented by \cite{vilhjalmsson2015modeling}) with the new LDpred2 (as implemented in R package bigsnpr). 
+8 binary phenotypes are used, summarized in table \ref{tab:sumstats}.
+For T1D, T2D, BRCA, PRCA and MDD, all LDpred2 models perform much better than LDpred1. For example, for BRCA, AUC improves from 58.5\% with LDpred1 to 65\% with LDpred2, and from 55\% to 75\% for T1D. 
+For Asthma, CAD and RA, predictive performances of LDpred1 and LDpred2 are similar.
+
+As in simulations, the sparse version of LDpred2 performs equally well as the original version, with the exception of PRCA, for which it performs poorly.
+For CAD, PRCA and TD1, LDpred2-auto perform much worse than LDpred2, otherwise it performs similarly.
+
+%% FIGURE 2 HERE
+\begin{figure}[h]
+\centerline{\includegraphics[width=0.85\textwidth]{AUC-real}}
+\caption{Results of the real data applications using published external summary statistics.
+Bars present AUC values on the test set of UKBB (mean and 95\% CI from $10^4$ bootstrap samples).
+%See corresponding values in table S2.
+}
+\label{fig:AUC-real}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -125,9 +170,45 @@ We show that [DESCRIBE RESULTS].
 
 
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Online Methods}
+\section{Methods}
+
+\subsection*{Simulation analyses}
+
+We use the UK Biobank data for both real data analyses and simulations. We restrict individuals to White-British individuals used in the PC computation of the UK Biobank (i.e.\ unrelated and quality-controlled). We restrict variants to HapMap3 variants.
+This results in 337,475 individuals and 1,194,574 variants.
+We use 10,000 individuals as a validation set for choosing optimal hyper-parameters and computing correlations between variants (LD matrix). 
+We use 300,000 other individuals for running logistic GWAS to create summary statistics.
+We use the remaining 27,475 individuals as test set for evaluating models.
+
+\subsection*{Real data analyses}
+
+We use the same data as in the simulation analyses. We use the same 10,000 individuals as validation set, and use the remaining 327,475 individuals as test set.
+We use external published GWAS summary statistics listed in table \ref{tab:sumstats}.
+We defined phenotypes as done in \cite{prive2019making}. For details, please refer to our R code (Software and code availability section).
+
+%% TABLE 1 HERE
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l|c|c|c|c|}
+		\hline
+		Trait & GWAS citation & GWAS sample size & GWAS \#variants \\
+		\hline
+		Breast cancer (BRCA) & \cite{michailidou2017association} & 137,045 / 119,078 & 11,792,542 \\
+		Rheumatoid arthritis (RA) & \cite{okada2014genetics} & ~~29,880 / ~~73,758 & ~~9,739,303 \\
+		Type 1 diabetes (T1D) & \cite{censin2017childhood} & ~~~~~5913 / ~~~~~8828  & ~~8,996,866 \\
+		Type 2 diabetes (T2D) & \cite{scott2017expanded} & ~~26,676 / 132,532 & 12,056,346 \\
+		Prostate cancer (PRCA) & \cite{schumacher2018association} & ~~79,148 / ~~61,106 & 20,370,946 \\
+		Depression (MDD) & \cite{wray2018genome} & ~~59,851 / 113,154 & 13,554,550 \\
+		Coronary artery disease (CAD) & \cite{nikpay2015comprehensive} & ~~60,801 / 123,504 & ~~9,455,778 \\
+		Asthma & \cite{demenais2018multiancestry} & ~~19,954 / 107,715 & ~~2,001,280 \\
+		\hline
+	\end{tabular}
+	\caption{Summary of external GWAS summary statistics used. The GWAS sample size is the number of cases / controls in the GWAS. \label{tab:sumstats}}
+\end{table}
+
 
 \subsection*{From marginal effects to joint effects}
 
@@ -223,40 +304,6 @@ Second, as noted in \cite{prive2019making}, it may be beneficial to assume that 
 For example, autoimmune diseases clearly show larger effects on chromosome 6. compared to other chromosomes.
 Assuming the same model for genetic effects genome-wide could results in severe model misspecification, which would lead to suboptimal predictive performance.
 Moreover, since the inverse of a block-diagonal matrix is formed from the inverse of each block, it should be safe to run LDpred2 for each chromosome and then combining the results.  
-
-\subsection*{Simulation analyses}
-
-We use the UK Biobank data for both real data analyses and simulations. We restrict individuals to White-British individuals used in the PC computation of the UK Biobank (i.e.\ unrelated and quality-controlled). We restrict variants to HapMap3 variants.
-This results in 337,475 individuals and 1,194,574 variants.
-We use 10,000 individuals as a validation set for choosing optimal hyper-parameters and computing correlations between variants. 
-We use 300,000 other individuals for running logistic GWAS to create summary statistics.
-We use the remaining 27,475 individuals as test set for evaluating models.
-
-\subsection*{Real data analyses}
-
-We use the same data as in the simulation analyses. We use the same 10,000 individuals as validation set, and use the remaining 327,475 individuals as test set.
-We use external published GWAS summary statistics listed in table \ref{tab:sumstats}.
-We defined phenotypes as done in \cite{prive2019making}. For details, please refer to our R code (Software and code availability section).
-
-%% TABLE 1 HERE
-\begin{table}[h]
-	\centering
-	\begin{tabular}{|l|c|c|c|c|}
-		\hline
-		Trait & GWAS citation & GWAS sample size & GWAS \#variants \\
-		\hline
-		Breast cancer (BRCA) & \cite{michailidou2017association} & 137,045 / 119,078 & 11,792,542 \\
-		Rheumatoid arthritis (RA) & \cite{okada2014genetics} & ~~29,880 / ~~73,758 & ~~9,739,303 \\
-		Type 1 diabetes (T1D) & \cite{censin2017childhood} & ~~~~~5913 / ~~~~~8828  & ~~8,996,866 \\
-		Type 2 diabetes (T2D) & \cite{scott2017expanded} & ~~26,676 / 132,532 & 12,056,346 \\
-		Prostate cancer (PRCA) & \cite{schumacher2018association} & ~~79,148 / ~~61,106 & 20,370,946 \\
-		Depression (MDD) & \cite{wray2018genome} & ~~59,851 / 113,154 & 13,554,550 \\
-		Coronary artery disease (CAD) & \cite{nikpay2015comprehensive} & ~~60,801 / 123,504 & ~~9,455,778 \\
-		Asthma & \cite{demenais2018multiancestry} & ~~19,954 / 107,715 & ~~2,001,280 \\
-		\hline
-	\end{tabular}
-	\caption{Summary of external GWAS summary statistics used. The GWAS sample size is the number of cases / controls in the GWAS. \label{tab:sumstats}}
-\end{table}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
