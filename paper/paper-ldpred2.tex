@@ -168,6 +168,33 @@ Bars present AUC values on the test set of UKBB (mean and 95\% CI from $10^4$ bo
 
 \section{Discussion}
 
+Here we present LDpred2, a new version of LDpred. 
+LDpred is widely used and has the potential to provide polygenic models with good predictive performance \cite{khera2018genome}. 
+Yet, it has some instability issues.
+We propose a new version to solve these instability issues and try to improve other points as well.
+
+We show that LDpred2 is much more stable and provides higher prediction than LDpred1.
+We demonstrate that LDpred1 has some large issues due to long-range LD regions such as the HLA region.
+Indeed, both LDpred1 and LDpred1-inf perform poorly in the simulations where causal variants are the HLA region.
+In constrast, LDpred2 perform very well. We hypothesize that LDpred1 does not use a window size that is large enough to account for long-range LD such as in the HLA region.
+In LDpred2, we use a window size of 3 cM, which is much larger and enable LDpred2 to work well even when causal variants are in long-range LD regions.
+We hypothesize that using a larger LD window explains the 5 real traits where LDpred2 performs much better than LDpred1, especially because LDpred2-inf performs better than LDpred1-inf.
+We strongly discourage against removing these regions as suggested by others as these regions, especially the HLA region, contain lots of variants associated with many traits such as autoimmune diseases and psychiatric disorders, and are therefore very useful for prediction.
+
+In LDpred2, we also test more values for $p$ (17 instead of 7 by default) and for $h^2$ (3 instead of 1).
+When testing the grid of hyper-parameters of $p$ and $h2$, we also allow for testing an option to enable sparse models in LDpred2 (see after).
+Overall, we test a grid of 102 different values in LDpred2 instead of 7 in LDpred1, we use 5 times as many iterations, use a larger window size for computing correlation, yet it is LDpred2 is still faster than LDpred1.
+LDpred2 is faster than LDpred1 because we provide a very efficient parallel implementation in C++. The parallelization is performed on the grid of parameters, but can also be performed chromosome-wise, as each chromosome is processed independently in LDpred2 (see methods).
+As an example, it takes less than two hours to run LDpred2-inf, LDpred2-grid (108 hyper-parameters values) and LDpred2-auto for a chromosome with 100K variants and using 8 cores, and only 15 minutes for a chromosome with 20K variants.
+Pre-computing the LD matrix for a chromosome with 100K variants takes 11 minutes using 16 cores.
+
+LDpred2 also comes with two new models.
+When the sparse option is enabled, it provide models that are truly sparse, as compared to LDpred1 which outputs very small non-zero effect sizes \cite{cecile2019polygenic}.
+It can provide sparse effect sizes as much as 98\% for small $p$, while keeping predictive performance as good non-sparse models, as opposed to if very small effects were simply discarded \cite[]{bolli2019software}.
+This sparse model perform equally well as the non-sparse model, therefore we encourage users to test it in the grid and to choose it if it performs equally well as the non-sparse model.
+As for LDpred2-auto, which automatically estimates values for hyper-parameters $p$ and $h^2$, it performs equally well as other LDpred2 models in simulations, but does not perform well for half of the real traits analyzed here.
+More investigations need to perform to understand the poor results of LDpred2-auto for some real traits.
+
 
 
 
@@ -182,6 +209,16 @@ This results in 337,475 individuals and 1,194,574 variants.
 We use 10,000 individuals as a validation set for choosing optimal hyper-parameters and computing correlations between variants (LD matrix). 
 We use 300,000 other individuals for running logistic GWAS to create summary statistics.
 We use the remaining 27,475 individuals as test set for evaluating models.
+
+We simulate binary phenotypes with a heritability of $h^2 = 0.4$ (or 0.3)  using a Liability Threshold Model (LTM) with a prevalence of 15\% \cite[]{falconer1965inheritance}. 
+We vary the number of causal variants (300, 3000, 30K, or 300K) to match a range of genetic architectures from low to high polygenicity.
+Liability scores are computed from a model with additive effects only: we compute the liability score of the i-th individual as \(y_i = \sum_{j\in S_\text{causal}} w_j \widetilde{G_{i,j}} + \epsilon_i,\) where $S_\text{causal}$ is the set of causal variants, $w_j$ are weights generated from a Gaussian distribution $N(0, h^2 / \vert S_\text{causal} \vert)$, $G_{i,j}$ is the allele count of individual $i$ for variant $j$, $\widetilde{G_{i,j}}$ corresponds to its standardized version (zero mean and unit variance), and $\epsilon$ follows a Gaussian distribution $N(0, 1 - h^2)$.
+Causal variants are chosen randomly anywhere on the genome. 
+We make two other simulation scenarios with 300 or 3000 causal variants randomly chosen in the HLA region (chromosome 6, 25-35 Mb).
+Both parts of the $y_i$ are scaled such that the variance of the genetic liability is exactly $h^2$ and the variance of the total liability is exactly $1$. 
+This is implemented in function \texttt{snp\_simuPheno} of R package bigsnpr.
+Each simulation scenario is repeated 10 times and averages of the Area Under the ROC Curve (AUC) are reported. 
+
 
 \subsection*{Real data analyses}
 
