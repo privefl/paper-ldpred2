@@ -258,21 +258,24 @@ We defined phenotypes as in \cite{prive2019making}. For details, please refer to
 
 In this section, we explain how we can obtain joint effects from summary statistics (marginal effects) and a correlation matrix.
 Let us denote by $S$ the diagonal matrix with standard deviations of the $m$ variants, $C_n = I_n - 1 1^T / n$ the centering matrix, $G$ the genotype matrix of $n$ individuals and $m$ variants, and $y$ the phenotype vector for $n$ individuals.
-Then, the marginal effects (assuming no other covariates than the intercept) are given by 
-\[\hat{\beta}_{\text{marg}} = S^{-2} G^T C_n y ~,\]
-while the intercept $\hat{\alpha}$ and the joint effects are obtained by solving
-\[\begin{bmatrix} \hat{\alpha} \\ \hat{\beta}_{\text{joint}} \end{bmatrix} = \left(\begin{bmatrix} 1 & G \end{bmatrix}^T \begin{bmatrix} 1 & G \end{bmatrix}\right)^{-1} \begin{bmatrix} 1 & G \end{bmatrix}^T y ~.\]
+
+When solving a joint model with all variants and an intercept ${\alpha}$, the joint effects ${\gamma}_{\text{joint}}$ are obtained by solving
+\[\begin{bmatrix} \hat{\alpha} \\ \hat{\gamma}_{\text{joint}} \end{bmatrix} = \left(\begin{bmatrix} 1 & G \end{bmatrix}^T \begin{bmatrix} 1 & G \end{bmatrix}\right)^{-1} \begin{bmatrix} 1 & G \end{bmatrix}^T y ~.\]
 Using the Woodburry formula, we get 
-\[\hat{\beta}_{\text{joint}} = (G^T C_n G)^{-1} G^T C_n y ~.\]
-We further note that the correlation matrix of $G$ is \(K =  S^{-1} G^T C_n G  S^{-1}\).
-Then we get $\hat{\beta}_{\text{joint}} = S^{-1} K^{-1} S \hat{\beta}_{\text{marg}}$.
+\[\hat{\gamma}_{\text{joint}} = (G^T C_n G)^{-1} G^T C_n y ~.\]
+When fitting each variant separately in GWAS, the marginal effects (assuming no covariate) simplify to 
+\[\hat{\gamma}_{\text{marg}} = \dfrac{1}{n-1} S^{-2} G^T C_n y ~.\] 
+We further note that the correlation matrix of $G$ is \(K =  \dfrac{1}{n-1} S^{-1} G^T C_n G  S^{-1}\).
+Then we get \[\hat{\gamma}_{\text{joint}} = S^{-1} K^{-1} S \hat{\gamma}_{\text{marg}} ~.\]
 
-For one marginal effect $\hat{\beta}$, let us denote by $y^*$ and $g^*$ the corresponding phenotype and genotype (residualized from $K$ covariates, e.g.\ centering them).
+For one marginal effect $\hat{\gamma}$, let us denote by $y^*$ and $g^*$ the corresponding phenotype and genotype (residualized from $K$ covariates, e.g.\ centering them).
 Then,
-$\text{var}(\hat{\beta}) = \dfrac{(y^* - \hat{\beta} g^*)^T (y^* - \hat{\beta} g^*)}{(N - K - 1) ~ g^{*T} g^*} \approx \dfrac{y^{*T} y^*}{N ~ g^{*T} g^*} \approx \dfrac{\text{var}(y)}{N ~ \text{var}(g)}$.
-Thus, we can derive $\text{sd}(g) \approx \dfrac{\text{sd}(y)}{\text{sd}(\hat{\beta}) ~ \sqrt{N}}$ and $\left(\text{sd}(g) ~ \hat{\beta}\right) \approx \dfrac{\hat{\beta}}{\text{sd}(\hat{\beta})} \dfrac{\text{sd}(y)}{\sqrt{N}}$.
+$\text{var}(\hat{\gamma}) = \dfrac{(y^* - \hat{\gamma} g^*)^T (y^* - \hat{\gamma} g^*)}{(N - K - 1) ~ g^{*T} g^*} \approx \dfrac{y^{*T} y^*}{N ~ g^{*T} g^*} \approx \dfrac{\text{var}(y)}{N ~ \text{var}(g)}$.
+Thus, we can derive $\text{sd}(g) \approx \dfrac{\text{sd}(y)}{\text{sd}(\hat{\gamma}) ~ \sqrt{N}}$ and $\left(\text{sd}(g) ~ \hat{\gamma}\right) \approx \dfrac{\hat{\gamma}}{\text{sd}(\hat{\gamma})} \dfrac{\text{sd}(y)}{\sqrt{N}}$.
 
-Let us go back to the formula we derived before: $\hat{\beta}_{\text{joint}} = S^{-1} K^{-1} S \hat{\beta}_{\text{marg}}$. As $\text{sd}(y)$ is the same for all variants, it is cancelled out by $S^{-1}$ and $S$. Then it justifies the use of Z-scores ($\hat{\beta} / \text{sd}(\hat{\beta})$) divided by $\sqrt{N}$ as input for LDpred. Then, the effect sizes that LDpred outputs need to be scaled by multiplying by $\left(\text{sd}(\hat{\beta}) ~ \sqrt{N}\right)$.
+Let us go back to the formula we derived before: $\hat{\gamma}_{\text{joint}} = S^{-1} K^{-1} S \hat{\gamma}_{\text{marg}}$. 
+Note that $\gamma$ are the effects on the allele scale while we denote by $\beta = S \gamma$ the effects of the scaled genotypes.
+As $\text{sd}(y)$ is the same for all variants, it is cancelled out by $S^{-1}$ and $S$. Then it justifies the use of Z-scores ($\hat{\gamma} ~/~ \text{sd}(\hat{\gamma})$) divided by $\sqrt{N}$ as input for LDpred. Then, the effect sizes that LDpred outputs need to be scaled by multiplying by $\left(\text{sd}(\hat{\gamma}) ~ \sqrt{N}\right)$.
 Note that LDpred1 and other similar methods scale the output dividing by the standard deviation of genotypes. This is correct when $\text{sd}(y) = 1$ only.
 
 
@@ -281,7 +284,7 @@ Note that LDpred1 and other similar methods scale the output dividing by the sta
 
 LDpred assumes the following model for effect sizes,
 \begin{equation}\label{eq:model}
-\beta_j \sim \left\{
+\beta_j = S \gamma_j \sim \left\{
 \begin{array}{ll}
 \mathcal N\left(0, \dfrac{h^2}{M p}\right) & \mbox{with probability $p$,} \\
 0 & \mbox{otherwise,}
