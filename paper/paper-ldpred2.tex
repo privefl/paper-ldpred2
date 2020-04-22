@@ -309,16 +309,23 @@ where $p$ is the proportion of causal variants, $M$ the number of variants and $
 \newcommand{\phmpn}{\dfrac{p}{\sqrt{\hmpn}}}
 \newcommand{\betahmpn}{\dfrac{\tilde{\beta}_j^2}{\hmpn}}
 
-To estimate effect sizes $\beta_j$, \cite{vilhjalmsson2015modeling} use a Gibbs sampler [REALLY A GS?]. They compute the probability that variant $j$ is causal as 
+To estimate effect sizes $\beta_j$, \cite{vilhjalmsson2015modeling} use a Gibbs sampler, as described in algorithm \ref{algo:ldpred}.
+
+First, they estimate the residualized marginal effect for variant $j$ as [SHOULD VERIFY]
+\begin{equation}\label{eq:beta_res}
+\tilde{\beta}_j = \hat{\beta}_j - \boldsymbol{\beta}^T_{\text{-}j} \boldsymbol{K}_{\text{-}j, j}
+\end{equation}
+where $\boldsymbol{K}_{\text{-}j, j}$ is the $j$-th column without the  $j$-th row of the correlation matrix and $\boldsymbol{\hat{\beta}}$ are the marginal effect sizes.
+Then, they compute the probability that variant $j$ is causal as 
 \[\bar{p}_j = P\left(\beta_j \sim \mathcal N(\cdot,\cdot) ~|~ \tilde{\beta}_j\right) = \dfrac{\phmpn \exp\left\lbrace-\dfrac{1}{2} \betahmpn\right\rbrace}{\phmpn \exp\left\lbrace-\dfrac{1}{2} \betahmpn\right\rbrace + \dfrac{1-p}{\sqrt{\dfrac{1}{N}}} \exp\left\lbrace-\dfrac{1}{2} \dfrac{\tilde{\beta}_j^2}{\dfrac{1}{N}}\right\rbrace}~,\]
 which we rewrite as
 \begin{equation}
-\bar{p}_j = \dfrac{1}{1 + \dfrac{1-p}{p} \sqrt{1 + \dfrac{N h^2}{Mp}} \exp\left\lbrace-\dfrac{1}{2} \dfrac{N \tilde{\beta}_j^2}{1 + \dfrac{Mp}{N h^2}}\right\rbrace}~.
+\bar{p}_j = \dfrac{1}{1 + \dfrac{1-p}{p} \sqrt{1 + \dfrac{N h^2}{Mp}} \exp\left\lbrace-\dfrac{1}{2} \dfrac{N \tilde{\beta}_j^2}{1 + \dfrac{Mp}{N h^2}}\right\rbrace}~.\label{eq:postp}
 \end{equation}
 Computing $\bar{p}_j$ using the second expression is important to avoid numerical issues when $N \tilde{\beta}_j^2$ is large.
 
 Then, $\beta_j$ is sampled according to
-\begin{equation}\label{eg:beta_random}
+\begin{equation}\label{eg:random_beta}
 \beta_j ~|~ \tilde{\beta}_j \sim \left\{
 \begin{array}{ll}
 \mathcal N\left(\dfrac{1}{1 + \dfrac{M p}{N h^2}} \tilde{\beta}_j, \dfrac{1}{1 + \dfrac{M p}{N h^2}}\dfrac{1}{N}\right) & \mbox{with probability $\bar{p}_j$,} \\
@@ -327,35 +334,49 @@ Then, $\beta_j$ is sampled according to
 \right.
 \end{equation}
 
+Therefore, the posterior mean of $\beta_j$ is given by 
+\begin{equation}\label{eg:post_beta}
+\omega_j = \dfrac{\bar{p}_j \tilde{\beta}_j}{1 + \dfrac{M p}{N h^2}} ~.
+\end{equation}
+
 %\begin{minipage}{.7\textwidth}
 \begin{algorithm}[H]
-\caption{LDpred} 
-\begin{algorithmic}
-	\For {$i=1,\ldots,N_{iter}$}
-	\For {$j=1,\ldots,M$} \Comment{put some comments here}
-	\State Run ... \Comment{put some comments here}
-	\State Compute... \Comment{put some comments here}
+\caption{LDpred, with hyper-parameters $p$ and $h^2$}\label{algo:ldpred}
+\begin{algorithmic}[1]
+	\State $\boldsymbol{\hat{\beta}} \gets \dfrac{\boldsymbol{\hat{\gamma}}}{\boldsymbol{\text{sd}(\hat{\gamma})} \cdot \sqrt{\boldsymbol{N}}}$ \Comment{See previous section}
+	\State $\boldsymbol{\Omega} \gets \boldsymbol{0}$
+	\For {$k=1,\ldots,N_\text{burn-in} + N_\text{iter}$} \Comment{Gibbs iterations}
+	\For {each variant $j$} \Comment{All variants}
+	\State Compute $\tilde{\beta}_j$ according to \eqref{eq:beta_res}
+	\State Compute $\bar{p}_j$ according to \eqref{eq:postp}
+	\State Sample $\beta_j$ according to \eqref{eg:random_beta}
+	\State Compute $\omega_j$ according to \eqref{eg:post_beta}
 	\EndFor
-	\State Optimize ...
-	\State $\theta_{old}\leftarrow\theta$
+	\State Compute $\boldsymbol{\beta}^T \boldsymbol{K} \boldsymbol{\beta}$ (estimate of $h^2$) to check divergence \Comment{Return 0s if divergence}
+	\If {$k > N_\text{burn-in}$} 
+	\State Increment $\boldsymbol{\Omega}$ with $\boldsymbol{\omega}$ 
+	\EndIf
 	\EndFor
+	\State $\boldsymbol{\Omega} \gets \boldsymbol{\Omega} /  N_\text{iter}$
+	\State Return $\boldsymbol{\Omega} \cdot  \boldsymbol{\text{sd}(\hat{\gamma})} \cdot \sqrt{\boldsymbol{N}}$ \Comment{See previous section}
 \end{algorithmic} 
 \end{algorithm}
 %\end{minipage}
 
-[TO COMPLETE + CLEARER -> SHOULD SHOW THAT IT IS ITERATIVE]
+[CHANGE NOTATION OF SUMSTATS / SD -> SE?]
 
 \subsection*{New LDpred2 models}
 
 LDpred2 comes with two extensions of the LDpred model.
 
 The first extension consists in estimating $p$ and $h^2$ in the model, as opposed to testing several values of $p$ and estimating $h^2$ using constrained LD score regression \cite[]{bulik2015ld}. This makes LDpred2-auto a method free of hyper-parameters which can therefore directly be applied to data without the need of a validation dataset to choose best-performing hyper-parameters.
-To estimate $p$, we count the number of causal variants (i.e.\ $m_c = \sum_j(\beta_j \neq 0)$ in equation \ref{eg:beta_random}). 
+To estimate $p$, we count the number of causal variants (i.e.\ $m_c = \sum_j(\beta_j \neq 0)$ in equation \ref{eg:random_beta}). 
 We can assume that $m_c \sim \text{Binom}(M, p)$, so if we place a prior $p \sim \text{Beta}(1, 1) \equiv \mathcal{U}(0, 1)$, we can sample $p$ from the posterior $p \sim \text{Beta}(1 + m_c, 1 + M - m_c)$.
 Due to complexity reasons, we could not derive a Bayesian estimator of $h^2$. Instead, we estimate $h^2 = \beta^T K \beta$, where $K$ is the correlation matrix.
+These parameters $p$ and $h^2$ are updated after the inner loop in algorithm \ref{algo:ldpred}, then these new values are used in the next iteration of the outer loop.
 
 The second extension, LDpred2-sparse, aims at providing sparse effect size estimates, i.e.\ that some resulting effects are exactly 0.
-When the sparse solution is sought and when $\bar{p}_j < p$, we set $\beta_j = 0$.
+When the sparse solution is sought and when $\bar{p}_j < p$, we set $\beta_j$ and $\omega_j$ to 0 (lines 6-8 of algorithm \ref{algo:ldpred}).
 Note that LDpred2-auto does not have a sparse option, but it is possible to run LDpred2-sparse with the $p$ and $h^2$ estimates from LDpred2-auto.
 
 \subsection*{New strategy for local correlation}
