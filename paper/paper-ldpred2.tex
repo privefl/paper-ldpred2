@@ -42,6 +42,8 @@
 \usepackage{graphicx}
 \graphicspath{{../figures/}}
 \DeclareMathOperator*{\argmin}{\arg\!\min}
+\usepackage{algorithm} 
+\usepackage{algpseudocode} 
 
 \let\tabbeg\tabular
 \let\tabend\endtabular
@@ -64,13 +66,14 @@
 
 
 \title{LDpred2: better, faster, stronger}
-\author{Florian Priv\'e,$^{\text{1,}*}$ Julyan Arbel,$^{\text{2}}$ and Bjarni J. Vilhj\'almsson$^{\text{1,}*}$}
+\author{Florian Priv\'e,$^{\text{1,}*}$ Julyan Arbel,$^{\text{2}}$ and Bjarni J. Vilhj\'almsson$^{\text{1,3,}*}$}
 
 \date{~ }
 \maketitle
 
 \noindent$^{\text{\sf 1}}$National Centre for Register-Based Research, Aarhus University, Aarhus, 8210, Denmark. \\
 \noindent$^{\text{\sf 2}}$Univ.\ Grenoble Alpes, Inria, CNRS, Grenoble INP, LJK, Grenoble, 38000, France. \\
+\noindent$^{\text{\sf 3}}$Bioinformatics Research Centre, Aarhus University, Aarhus, 8000, Denmark. \\
 \noindent$^\ast$To whom correspondence should be addressed.\\
 
 \noindent Contacts:
@@ -92,26 +95,26 @@
 
 \section{Introduction}
 
-The use of polygenic scores (PGS) is widespread now.
-A PGS sums up the information of many genetic variants into a single score.
-There are high hopes for using these scores into clinical practice. 
-Predictive performance of PGS is inexorably bounded by heritability, the proportion of phenotypic variance that is attributable to genetics, therefore using them as a diagnostic tool for diseases is limited.
-Nevertheless, it should be possible to use them to stratify the population into groups of different risk levels, to be able to identify individuals at high risk for a given disease \cite[]{pashayan2015implications,willoughby2019genetic}. 
-These people should then be monitored more closely to detect the disease and intervene sooner to maximize chances of remission (e.g.\ in the case of cancer).
-PGS are also extensively used in epidemiology and economics as predictive variables of interest. For example, a recently derived PGS for education attainment has been one of the most predictive variables in behavioural sciences so far \cite[]{allegrini2019genomic}.
+In recent years the use of polygenic scores (PGS) has become widespread. A PGS aggregates (risk) effects across many genetic variants into a single predictive score. These scores have proven useful for studying the genetic architecture and relationships between diseases and traits \cite[]{purcell2009common,kong2018nature}.
+Moreover, there are high hopes for using these scores in clinical practice to improve disease risk estimates and prognostic accuracies.
+The heritability, i.e.\ the proportion of phenotypic variance that is attributable to genetics, determines an upper limit on the predictive performance of PGS and thus their value as a diagnostic tool.
+Nevertheless, a number of studies have explored the use of PGS in clinical settings \cite[]{pashayan2015implications,willoughby2019genetic,abraham2019genomic}.
+PGS are also extensively used in epidemiology and economics as predictive variables of interest [TODO BJARNI CITATIONS]. 
+For example, a recently derived PGS for education attainment has been one of the most predictive variables in behavioural sciences so far \cite[]{allegrini2019genomic}.
 
 LDpred is a popular and powerful method for deriving polygenic scores based on summary statistics and a Linkage Disequilibrium (LD) matrix only \cite[]{vilhjalmsson2015modeling}.
 It assumes there is a proportion $p$ of variants that are causal.
-However, LDpred currently has several limitations that may result in limited predictive performance.
+However, LDpred has several limitations that may result in limited predictive performance.
 The non-infinitesimal version of LDpred, a Gibbs sampler, is particularly sensitive to model misspecification when applied to summary statistics with large sample sizes.
-It may also be very unstable in long-range LD regions such as the human leukocyte antigen (HLA) region of chromosome 6. This issue has lead to the removal of this region from analyses  \cite[]{marquez2018modeling,lloyd2019improved}, which is a shame since this region of the genome contains several disease-associated variants, particularly with autoimmune diseases and psychiatric disorders \cite[]{mokhtari2016major,matzaraki2017mhc}.
-LDpred is also considered not particularly fast, nor memory-efficient, nor it provides truly sparse models as expected by its model specification.
+It is also unstable in long-range LD regions such as the human leukocyte antigen (HLA) region of chromosome 6. 
+This issue has lead to the removal of such regions from analyses  \cite[]{marquez2018modeling,lloyd2019improved}, which is unfortunate since this region of the genome contains many known disease-associated variants, particularly with autoimmune diseases and psychiatric disorders \cite[]{mokhtari2016major,matzaraki2017mhc}.
+%LDpred is also considered not particularly fast, nor memory-efficient, nor it provides truly sparse models as expected by its model specification.
 
-Here, we present LDpred2, a new version of LDpred, that aims to cope with these issues.
-We provide a faster and more robust implementation of LDpred in R package bigsnpr \cite[]{prive2017efficient}.
-We also provide two new options in LDpred2. First, we provide a ``sparse'' option, where LDpred2 truly fits some effects to zero, therefore providing a sparse vector of effects. Second, we also provide an ``auto'' option, where LDpred2 automatically estimates the sparsity $p$ and the SNP heritability $h^2$, therefore for which there is no need for validation data to choose hyper-parameters performing best.
-We show that LDpred2 provides higher predictive performance than LDpred1 (LDpred v1.0.0), especially when there are causal variants in long-range LD regions or when the proportion of causal variants is small.
-We also show that the new sparse option performs equally well as the non-sparse version, enabling LDpred2 to fit a sparse model without losing prediction accuracy.
+Here, we present LDpred2, a new version of LDpred that addresses these issues while markedly improving its computational efficiency.
+We provide this faster and more robust implementation of LDpred in R package bigsnpr \cite[]{prive2017efficient}.
+We also provide two new options in LDpred2. First, we provide a ``sparse'' option, where LDpred2 truly fits some effects to zero, therefore providing a sparse vector of effects. Second, we also provide an ``auto'' option, where LDpred2 automatically estimates the sparsity $p$ and the SNP heritability $h^2$, and therefore does not require validation data to tune hyper-parameters.
+We show that LDpred2 provides higher predictive performance than LDpred1 (LDpred v1.0.0), especially when there are causal variants in long-range LD regions, or when the proportion of causal variants is small.
+We also show that the new sparse option performs equally well as the non-sparse version, enabling LDpred2 to provide sparse effects without losing prediction accuracy.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -174,8 +177,8 @@ Bars present AUC values on the test set of UKBB (mean and 95\% CI from $10^4$ bo
 
 Here we present LDpred2, a new version of LDpred. 
 LDpred is widely used and has the potential to provide polygenic models with good predictive performance \cite[]{khera2018genome}. 
-Yet, it has some instability issues.
-We propose a new version to solve these instability issues and try to improve other points as well.
+Yet, it has some instability issues that have been pointed out \cite[]{marquez2018modeling,lloyd2019improved} and likely contributed to discrepancies in reported prediction accuracies \cite[]{choi2019prsice,ge2019polygenic}.
+We propose a new version of LDpred to solve these instability issues and improve its computational efficiency.
 
 We show that LDpred2 is much more stable and provides higher prediction than LDpred1.
 We demonstrate that LDpred1 has defects, particularly when handling long-range LD regions such as the HLA region.
@@ -200,6 +203,14 @@ This sparse model performs equally well as the non-sparse model, therefore we en
 As for LDpred2-auto, which automatically estimates values for hyper-parameters $p$ and $h^2$, it performs equally well as other LDpred2 models in simulations, but does not perform well for half of the real traits analyzed here.
 More investigations need to be performed to understand the poor results of LDpred2-auto for these particular real traits.
 
+\begin{figure}[h]
+	\centerline{\includegraphics[width=0.85\textwidth]{QC-CAD}}
+	\caption{Results of the real data applications using published external summary statistics.
+		Bars present AUC values on the test set of UKBB (mean and 95\% CI from $10^4$ bootstrap samples).
+		%See corresponding values in table S2.
+	}
+	\label{fig:QC-CAD}
+\end{figure}
 [TALK ABOUT QUALITY CONTROL ON AF?]
 
 [TALK ABOUT DIFFERENT SETS OF VARIANTS?]
@@ -304,6 +315,7 @@ which we rewrite as
 \begin{equation}
 \bar{p}_j = \dfrac{1}{1 + \dfrac{1-p}{p} \sqrt{1 + \dfrac{N h^2}{Mp}} \exp\left\lbrace-\dfrac{1}{2} \dfrac{N \tilde{\beta}_j^2}{1 + \dfrac{Mp}{N h^2}}\right\rbrace}~.
 \end{equation}
+Computing $\bar{p}_j$ using the second expression is important to avoid numerical issues when $N \tilde{\beta}_j^2$ is large.
 
 Then, $\beta_j$ is sampled according to
 \begin{equation}\label{eg:beta_random}
@@ -314,6 +326,22 @@ Then, $\beta_j$ is sampled according to
 \end{array}
 \right.
 \end{equation}
+
+%\begin{minipage}{.7\textwidth}
+\begin{algorithm}[H]
+\caption{LDpred} 
+\begin{algorithmic}
+	\For {$i=1,\ldots,N_{iter}$}
+	\For {$j=1,\ldots,M$} \Comment{put some comments here}
+	\State Run ... \Comment{put some comments here}
+	\State Compute... \Comment{put some comments here}
+	\EndFor
+	\State Optimize ...
+	\State $\theta_{old}\leftarrow\theta$
+	\EndFor
+\end{algorithmic} 
+\end{algorithm}
+%\end{minipage}
 
 [TO COMPLETE + CLEARER -> SHOULD SHOW THAT IT IS ITERATIVE]
 
