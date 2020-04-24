@@ -211,9 +211,14 @@ More investigations need to be performed to understand the poor results of LDpre
 	}
 	\label{fig:QC-CAD}
 \end{figure}
+
 [TALK ABOUT QUALITY CONTROL ON AF?]
 
 [TALK ABOUT DIFFERENT SETS OF VARIANTS?]
+
+[NEED TO UNDERSTAND WHY AUTO DOES NOT WORK FOR SOME TRAITS -> CAD BECAUSE DIFFERENT N // T1D PROBABLY BECAUSE OF SMALL SAMPLE SIZE // ASTHMA? AND PRCA?]
+
+[TALK ABOUT MODEL FOR BINARY DATA]
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -282,11 +287,11 @@ Then we get \[\hat{\gamma}_{\text{joint}} = S^{-1} K^{-1} S \hat{\gamma}_{\text{
 For one marginal effect $\hat{\gamma}$, let us denote by $y^*$ and $g^*$ the corresponding phenotype and genotype (residualized from $K$ covariates, e.g.\ centering them).
 Then,
 $\text{var}(\hat{\gamma}) = \dfrac{(y^* - \hat{\gamma} g^*)^T (y^* - \hat{\gamma} g^*)}{(N - K - 1) ~ g^{*T} g^*} \approx \dfrac{y^{*T} y^*}{N ~ g^{*T} g^*} \approx \dfrac{\text{var}(y)}{N ~ \text{var}(g)}$.
-Thus, we can derive $\text{sd}(g) \approx \dfrac{\text{sd}(y)}{\text{sd}(\hat{\gamma}) ~ \sqrt{N}}$ and $\left(\text{sd}(g) ~ \hat{\gamma}\right) \approx \dfrac{\hat{\gamma}}{\text{sd}(\hat{\gamma})} \dfrac{\text{sd}(y)}{\sqrt{N}}$.
+Thus, we can derive $\text{sd}(g) \approx \dfrac{\text{sd}(y)}{\text{se}(\hat{\gamma}) ~ \sqrt{N}}$ and $\left(\text{sd}(g) ~ \hat{\gamma}\right) \approx \dfrac{\hat{\gamma}}{\text{se}(\hat{\gamma})} \dfrac{\text{sd}(y)}{\sqrt{N}}$.
 
 Let us go back to the formula we derived before: $\hat{\gamma}_{\text{joint}} = S^{-1} K^{-1} S \hat{\gamma}_{\text{marg}}$. 
 Note that $\gamma$ are the effects on the allele scale while we denote by $\beta = S \gamma$ the effects of the scaled genotypes.
-As $\text{sd}(y)$ is the same for all variants, it is cancelled out by $S^{-1}$ and $S$. Then it justifies the use of Z-scores ($\hat{\gamma} ~/~ \text{sd}(\hat{\gamma})$) divided by $\sqrt{N}$ as input for LDpred. Then, the effect sizes that LDpred outputs need to be scaled by multiplying by $\left(\text{sd}(\hat{\gamma}) ~ \sqrt{N}\right)$.
+As $\text{sd}(y)$ is the same for all variants, it is cancelled out by $S^{-1}$ and $S$. Then it justifies the use of Z-scores ($\hat{\gamma} ~/~ \text{se}(\hat{\gamma})$) divided by $\sqrt{N}$ as input for LDpred. Then, the effect sizes that LDpred outputs need to be scaled by multiplying by $\left(\text{se}(\hat{\gamma}) ~ \sqrt{N}\right)$.
 Note that LDpred1 and other similar methods scale the output dividing by the standard deviation of genotypes. This is correct when $\text{sd}(y) = 1$ only.
 
 
@@ -310,7 +315,6 @@ where $p$ is the proportion of causal variants, $M$ the number of variants and $
 \newcommand{\betahmpn}{\dfrac{\tilde{\beta}_j^2}{\hmpn}}
 
 To estimate effect sizes $\beta_j$, \cite{vilhjalmsson2015modeling} use a Gibbs sampler, as described in algorithm \ref{algo:ldpred}.
-
 First, they estimate the residualized marginal effect for variant $j$ as [SHOULD VERIFY]
 \begin{equation}\label{eq:beta_res}
 \tilde{\beta}_j = \hat{\beta}_j - \boldsymbol{\beta}^T_{\text{-}j} \boldsymbol{K}_{\text{-}j, j}
@@ -343,7 +347,7 @@ Therefore, the posterior mean of $\beta_j$ is given by
 \begin{algorithm}[H]
 \caption{LDpred, with hyper-parameters $p$ and $h^2$}\label{algo:ldpred}
 \begin{algorithmic}[1]
-	\State $\boldsymbol{\hat{\beta}} \gets \dfrac{\boldsymbol{\hat{\gamma}}}{\boldsymbol{\text{sd}(\hat{\gamma})} \cdot \sqrt{\boldsymbol{N}}}$ \Comment{See previous section}
+	\State $\boldsymbol{\hat{\beta}} \gets \dfrac{\boldsymbol{\hat{\gamma}}}{\boldsymbol{\text{se}(\hat{\gamma})} \cdot \sqrt{\boldsymbol{N}}}$ \Comment{See previous section}
 	\State $\boldsymbol{\Omega} \gets \boldsymbol{0}$
 	\For {$k=1,\ldots,N_\text{burn-in} + N_\text{iter}$} \Comment{Gibbs iterations}
 	\For {each variant $j$} \Comment{All variants}
@@ -357,13 +361,13 @@ Therefore, the posterior mean of $\beta_j$ is given by
 	\State Increment $\boldsymbol{\Omega}$ with $\boldsymbol{\omega}$ 
 	\EndIf
 	\EndFor
-	\State $\boldsymbol{\Omega} \gets \boldsymbol{\Omega} /  N_\text{iter}$
-	\State Return $\boldsymbol{\Omega} \cdot  \boldsymbol{\text{sd}(\hat{\gamma})} \cdot \sqrt{\boldsymbol{N}}$ \Comment{See previous section}
+	\State $\boldsymbol{\Omega} \gets \boldsymbol{\Omega} /  N_\text{iter}$ \Comment{Average of all $\boldsymbol{\omega}$ after burn-in}
+	\State Return $\boldsymbol{\Omega} \cdot  \boldsymbol{\text{se}(\hat{\gamma})} \cdot \sqrt{\boldsymbol{N}}$ \Comment{See previous section}
 \end{algorithmic} 
 \end{algorithm}
 %\end{minipage}
 
-[CHANGE NOTATION OF SUMSTATS / SD -> SE?]
+[CHANGE NOTATION OF SUMSTATS?]
 
 \subsection*{New LDpred2 models}
 
@@ -398,7 +402,7 @@ We recommend to run LDpred2 per chromosome.
 Even if it is possible to run LDpred2 genome-wide, this approach has two limitations. First, it can be memory and computationally demanding to do so. For around one million (1M) variants, storing the 1M$\times$1M sparse correlation matrix takes more than 32 GB of memory. 
 Doubling to 2M variants would require 128 GB of RAM to store the matrix.
 Second, as noted in \cite{prive2019making}, it may be beneficial to assume that architecture of traits may be different for different chromosomes.
-For example, autoimmune diseases clearly show larger effects on chromosome 6 compared to other chromosomes.
+For example, chromosome 6 clearly encompasses a larger proportion of the heritability of autoimmune diseases compared to other chromosomes \cite[]{shi2016contrasting}.
 Assuming the same model for genetic effects genome-wide could result in severe model misspecification, which would lead to suboptimal predictive performance.
 Moreover, since the inverse of a block-diagonal matrix is formed from the inverse of each block, it should be safe to run LDpred2 for each chromosome and then combine the results.  
 
