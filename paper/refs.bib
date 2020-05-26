@@ -1,3 +1,17 @@
+@article{prive2020efficient,
+	author = {Priv{\'e}, Florian and Luu, Keurcien and Blum, Michael G B and McGrath, John J and Vilhj{\'a}lmsson, Bjarni J},
+	title = "{Efficient toolkit implementing best practices for principal component analysis of population genetic data}",
+	journal = {Bioinformatics},
+	year = {2020},
+	month = {05},
+	abstract = "{Principal Component Analysis (PCA) of genetic data is routinely used to infer ancestry and control for population structure in various genetic analyses. However, conducting PCA analyses can be complicated and has several potential pitfalls. These pitfalls include (1) capturing Linkage Disequilibrium (LD) structure instead of population structure, (2) projected PCs that suffer from shrinkage bias, (3) detecting sample outliers, and (4) uneven population sizes. In this work, we explore these potential issues when using PCA, and present efficient solutions to these. Following applications to the UK Biobank and the 1000 Genomes project datasets, we make recommendations for best practices and provide efficient and user-friendly implementations of the proposed solutions in R packages bigsnpr and bigutilsr.for example, we find that PC19 to PC40 in the UK Biobank capture complex LD structure rather than population structure. Using our automatic algorithm for removing long-range LD regions, we recover 16 PCs that capture population structure only. Therefore, we recommend using only 16-18 PCs from the UK Biobank to account for population structure confounding. We also show how to use PCA to restrict analyses to individuals of homogeneous ancestry. Finally, when projecting individual genotypes onto the PCA computed from the 1000 Genomes project data, we find a shrinkage bias that becomes large for PC5 and beyond. We then demonstrate how to obtain unbiased projections efficiently using bigsnpr.Overall, we believe this work would be of interest for anyone using PCA in their analyses of genetic data, as well as for other omics data.R packages bigsnpr and bigutilsr can be installed from either CRAN or GitHub (see https://github.com/privefl/bigsnpr). A tutorial on the steps to perform PCA on 1000G data is available at https://privefl.github.io/bigsnpr/articles/bedpca.html. All code used for this paper is available at https://github.com/privefl/paper4-bedpca/tree/master/code.Supplementary data are available at Bioinformatics online.}",
+	issn = {1367-4803},
+	doi = {10.1093/bioinformatics/btaa520},
+	url = {https://doi.org/10.1093/bioinformatics/btaa520},
+	note = {btaa520},
+	eprint = {https://academic.oup.com/bioinformatics/advance-article-pdf/doi/10.1093/bioinformatics/btaa520/33221772/btaa520.pdf},
+}
+
 @article{horsdal2019association,
 	title={Association of Childhood Exposure to Nitrogen Dioxide and Polygenic Risk Score for Schizophrenia With the Risk of Developing Schizophrenia},
 	author={Horsdal, Henriette Thisted and Agerbo, Esben and McGrath, John Joseph and Vilhj{\'a}lmsson, Bjarni J{\'o}hann and Antonsen, Sussie and Closter, Ane Marie and Timmermann, Allan and Grove, Jakob and Mok, Pearl LH and Webb, Roger T and others},
@@ -279,6 +293,17 @@
 	pages={92},
 	year={2017},
 	publisher={Nature Publishing Group}
+}
+
+@article{mak2017polygenic,
+	title={Polygenic scores via penalized regression on summary statistics},
+	author={Mak, Timothy Shin Heng and Porsch, Robert Milan and Choi, Shing Wan and Zhou, Xueya and Sham, Pak Chung},
+	journal={Genetic epidemiology},
+	volume={41},
+	number={6},
+	pages={469--480},
+	year={2017},
+	publisher={Wiley Online Library}
 }
 
 @article{prive2019making,

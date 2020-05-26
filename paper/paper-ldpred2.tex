@@ -12,7 +12,6 @@
 \usepackage{rotating}
 \usepackage{color}
 \usepackage{graphicx}
-\usepackage{subcaption}
 \usepackage{amsmath, amsthm, amssymb}
 \usepackage{setspace}
 \usepackage{lineno}
@@ -22,8 +21,8 @@
 
 %\renewcommand{\arraystretch}{1.8}
 
-\usepackage{xr}
-\externaldocument{paper-ldpred2-supp}
+%\usepackage{xr}
+%\externaldocument{paper-ldpred2-supp}
 
 %\linenumbers
 %\doublespacing
@@ -134,6 +133,7 @@ LDpred2 has 4 options: 1) LDpred2-inf, which provides an analytical solution und
 As a recall, LDpred v1 has two options: LDpred1-grid where only $p$ is optimized, and LDpred1-inf.
 
 We compare the two versions of LDpred using six simulation scenarios to understand the expected impact of using the new version of LDpred. We also compare these two versions of LDpred using eight case-control phenotypes of major interest and for which there are published external summary statistics available and a substantial number of cases in the UK Biobank data. Area Under the ROC Curve (AUC) values are reported.
+Finally, we compare LDpred2 to four other methods: Clumping and Thresholding (C+T), Stacked C+T (SCT), lassosum and PRS-CS \cite[]{prive2019making,mak2017polygenic,ge2019polygenic}.
 
 \subsection*{Simulations}
 
@@ -170,11 +170,27 @@ For PRCA and TD1, LDpred2-auto perform much worse than LDpred2, otherwise it per
 %% FIGURE 2 HERE
 \begin{figure}[h]
 \centerline{\includegraphics[width=0.85\textwidth]{AUC-real}}
-\caption{Results of the real data applications using published external summary statistics.
+\caption{Results of LDpred2 and LDpred1 for the real data applications using published external summary statistics.
 Bars present AUC values on the test set of UKBB (mean and 95\% CI from 10,000 bootstrap samples).
 %See corresponding values in table S2.
 }
 \label{fig:AUC-real}
+\end{figure}
+
+When comparing to other methods, we only report the best LDpred2 model (using the validation set). 
+LDpred2 performs best for Asthma and TD2 while lassosum performs best for BRCA, MDD and PRCA (Figure \ref{fig:AUC-all}).
+On average, methods perform very similarly. 
+
+[TODO: COMPLETE]
+
+%% FIGURE 3 HERE
+\begin{figure}[h]
+\centerline{\includegraphics[width=0.85\textwidth]{AUC-all}}
+\caption{Results of LDpred2, C+T, SCT, lassosum and PRS-CS in the real data applications using published external summary statistics.
+Bars present AUC values on the test set of UKBB (mean and 95\% CI from 10,000 bootstrap samples).
+%See corresponding values in table S2.
+}
+\label{fig:AUC-all}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -200,7 +216,7 @@ When testing the grid of hyper-parameters of $p$ and $h^2$, we also allow for te
 Overall, we test a grid of 102 different values in LDpred2 instead of 7 in LDpred1.
 We also use 5 times as many iterations in the Gibbs sampler and a larger window size for computing correlations between variants, yet LDpred2 is still as fast as LDpred1.
 LDpred2 is fast because we provide an efficient parallel implementation in C++. The parallelization is performed on the grid of hyper-parameters, but can also be performed chromosome-wise, as each chromosome is processed independently in LDpred2 (see Methods).
-As an example, it takes around two hours in total to run LDpred2-inf, LDpred2-grid (108 hyper-parameter values parallelized over 8 cores) and LDpred2-auto for a chromosome with 100,000 variants.
+As an example, it takes around two hours in total to run LDpred2-inf, LDpred2-grid (102 hyper-parameter values parallelized over 8 cores) and LDpred2-auto for a chromosome with 100,000 variants.
 It takes 11 minutes to pre-compute the LD matrix for 10,000 individuals and 100,000 variants (using 16 cores).
 
 LDpred2 also comes with two new models.
@@ -224,11 +240,14 @@ Yet, we do not know yet why LDpred2-auto performs poorly specifically for PRCA. 
 
 \subsection*{Simulation analyses}
 
-We use the UK Biobank data for both real data analyses and simulations \cite[]{bycroft2018uk}. We restrict individuals to White-British individuals used in the PC computation of the UK Biobank (i.e.\ unrelated and quality-controlled). We restrict variants to HapMap3 variants.
-This results in 337,475 individuals and 1,194,574 variants.
+We use the UK Biobank data for both real data analyses and simulations \cite[]{bycroft2018uk}. 
+We restrict individuals to the ones used for computing the principal components (PCs) in the UK Biobank; these individuals are unrelated and have pass some quality control.
+To get a set of genetically homogeneous individuals, we compute a robust Mahalanobis distance based on the first 16 PCs and further restrict individuals to those within a log-distance of 5 \cite[]{prive2020efficient}.
+We restrict variants to HapMap3 variants used in PRS-CS \cite[]{ge2019polygenic}.
+This results in 362,320 individuals and 1,117,493 variants.
 We use 10,000 individuals as a validation set for choosing optimal hyper-parameters and for computing correlations between variants (LD matrix $\boldsymbol{R}$). 
 We use 300,000 other individuals for running logistic GWAS to create summary statistics.
-We use the remaining 27,475 individuals as test set for evaluating models.
+We use the remaining 52,320 individuals as test set for evaluating models.
 
 We simulate binary phenotypes with a heritability of $h^2 = 0.4$ (or 0.3)  using a Liability Threshold Model (LTM) with a prevalence of 15\% \cite[]{falconer1965inheritance}. 
 We vary the number of causal variants (300, 3000, 30,000, or 300,000) to match a range of genetic architectures from low to high polygenicity.
@@ -242,7 +261,7 @@ Each simulation scenario is repeated 10 times and averages of the Area Under the
 
 \subsection*{Real data analyses}
 
-We use the same data as in the simulation analyses. We use the same 10,000 individuals as validation set, and use the remaining 327,475 individuals as test set.
+We use the same data as in the simulation analyses. We use the same 10,000 individuals as validation set, and use the remaining 352,320 individuals as test set.
 We use external published GWAS summary statistics listed in table \ref{tab:sumstats}.
 We defined phenotypes as in \cite{prive2019making}. For details, please refer to our R code (Software and code availability section).
 
@@ -265,6 +284,12 @@ We defined phenotypes as in \cite{prive2019making}. For details, please refer to
 	\end{tabular}
 	\caption{Summary of external GWAS summary statistics used. The GWAS sample size is the number of cases / controls in the GWAS. \label{tab:sumstats}}
 \end{table}
+
+In real data applications, we first compare all four LDpred2 models to the two LDpred1 models.
+Then, we compare of the best of the four LDpred2 models (chosen using the validation set, and for each chromosome) to four other methods: Clumping and Thresholding (C+T), Stacked C+T (SCT), lassosum and PRS-CS \cite[]{prive2019making,mak2017polygenic,ge2019polygenic}.
+For C+T and SCT, we use a large grid of hyper-parameters as in \cite{prive2019making}. For C+T, we choose the best set of parameters on each chromosome individually and combine them using a proper scaling as done for LDpred2 (see section \ref{sec:bychr}).
+For lassosum, we use the default grid of hyper-parameters $s$ and $\lambda$. 
+Finally, for PRS-CS, we use the grid $\{10^{-6}, 10^{-5}, \dots, 1\}$ for the global scaling hyper-parameter $\Phi$, and the default values for hyper-parameters $a$ and $b$. 
 
 
 \subsection*{From marginal effects to joint effects}
@@ -320,7 +345,7 @@ First, the residualized marginal effect for variant $j$ is computed as
 \begin{equation}\label{eq:beta_res}
 \tilde{\beta}_j = \hat{\beta}_j - \boldsymbol{\beta}^T_{\text{-}j} \boldsymbol{R}_{\text{-}j, j}
 \end{equation}
-where $\boldsymbol{R}_{\text{-}j, j}$ is the $j$-th column without the  $j$-th row of the correlation matrix, $\boldsymbol{\hat{\beta}}$ is the vector of marginal effect sizes, and $\boldsymbol{{\beta}}$ is the vector of current effect sizes in the Gibbs sampler.
+where $\boldsymbol{R}_{\text{-}j, j}$ is the $j$-th column without the  $j$-th row of the correlation matrix, $\boldsymbol{\hat{\beta}}$ is the vector of marginal effect sizes, and $\boldsymbol{{\beta}}$ is the vector of current effect sizes in the Gibbs sampler. 
 Then, the probability that variant $j$ is causal is computed as 
 \[\bar{p}_j = P\left(\beta_j \sim \mathcal N(\cdot,\cdot) ~|~ \tilde{\beta}_j\right) = \dfrac{\phmpn \exp\left\lbrace-\dfrac{1}{2} \betahmpn\right\rbrace}{\phmpn \exp\left\lbrace-\dfrac{1}{2} \betahmpn\right\rbrace + \dfrac{1-p}{\sqrt{\dfrac{1}{n}}} \exp\left\lbrace-\dfrac{1}{2} \dfrac{\tilde{\beta}_j^2}{\dfrac{1}{n}}\right\rbrace}~,\]
 which we rewrite as
@@ -395,9 +420,8 @@ Therefore, genetic distances enable to capture the same LD using a globally smal
 We provide function \texttt{snp\_asGeneticPos} in package bignspr to easily interpolate physical positions (in bp) to genetic positions (in cM).
 We recommend to use genetic positions and to use a size parameter of 3 cM when computing the correlation between variants for LDpred2. 
 Note that, in the code, we use \texttt{size = 3 / 1000} since parameter \texttt{size} is internally multiplied by 1000 in functions of package bigsnpr.
-To prevent storing very small correlations, we also set to 0 all correlations with a p-value larger than \texttt{alpha = 0.9} (when testing that the correlation is different from 0).
 
-\subsection*{New strategy for running LDpred2}
+\subsection*{New strategy for running LDpred2}\label{sec:bychr}
 
 We recommend to run LDpred2 per chromosome.
 Even if it is possible to run LDpred2 genome-wide, this approach has two limitations. First, it can be memory and computationally demanding to do so. For around one million (1M) variants, storing the 1M$\times$1M sparse correlation matrix takes more than 32 GB of memory. 
@@ -405,7 +429,13 @@ Doubling to 2M variants would require 128 GB of RAM to store the matrix.
 Second, as noted in \cite{prive2019making}, it may be beneficial to assume that architecture of traits may be different for different chromosomes.
 For example, chromosome 6 clearly encompasses a larger proportion of the heritability of autoimmune diseases compared to other chromosomes \cite[]{shi2016contrasting}.
 Assuming the same model for genetic effects genome-wide could result in severe model misspecification, which would lead to suboptimal predictive performance.
-Moreover, since the inverse of a block-diagonal matrix is formed from the inverse of each block, it should be safe to run LDpred2 for each chromosome and then combine the results. Combining results from all chromosomes requires using some appropriate scaling (see tutorial).
+Moreover, since the inverse of a block-diagonal matrix is formed from the inverse of each block, it should be safe to run LDpred2 for each chromosome and then combine the results. 
+
+To choose the best model from LDpred2-grid, one can choose the best model according to their preferred criterion (e.g. max AUC). 
+Here, we use the Z-Score from the regression of the phenotype by the PRS since we have found it more robust than using the AUC. 
+Using the regression also enables adjusting for covariates in this step.
+Combining results from all chromosomes requires using some appropriate scaling.
+Therefore, we scale the effect sizes by the regresion coefficient to be on a proper scaling when adding it to other chromosomes' scores.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
