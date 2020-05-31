@@ -90,7 +90,7 @@ However, LDpred has limitations that may result in limited predictive performanc
 Here we present LDpred2, a new version of LDpred that addresses these issues.
 We also provide two new options in LDpred2: a ``sparse'' option that can learn effects that are exactly 0, and an ``auto'' option that directly learns parameters from data.
 We benchmark LDpred2 against the previous version on simulated and real data, demonstrating substantial improvements in robustness and efficiency, as well as providing much more accurate polygenic scores.
-We then show that LDpred2 compares favorably to other polygenic score methods.
+We then show that LDpred2 compares favorably to other polygenic score methods developed more recently.
 LDpred2 is implemented in R package bigsnpr.
 }
 
@@ -143,14 +143,14 @@ Six simulation scenarios are used, each repeated 10 times.
 In the first four simulation scenarios, a heritability $h^2$ of 40\% and a prevalence of 15\% are used. We simulate 300, 3000, 30,000 or 300,000 causal variants anywhere on the genome. 
 In these scenarios, infinitesimal models perform similarly. 
 When testing a grid of hyper-parameters, LDpred2 performs substantially better than LDpred1 in the cases where the number of causal variants is small, i.e.\ in the case of 300 or 3000 causal variants ($p$=2.7e-4 and 2.7e-3). 
-For example, in simulations with 300 causal variants, a mean AUC of 73.5\% is obtained with LDpred1 while a value of 81.9\% is obtained with LDpred2 [TODO: VERIF NEW NUMBERS].
+For example, in simulations with 300 causal variants, a mean AUC of 73.6\% is obtained with LDpred1 while a value of 81.7\% is obtained with LDpred2.
 In these scenarios, all 3 non-infinitesimal models of LDpred2 perform equally well.
-As expected, LDpred1 performs poorly in HLA scenarios, i.e.\ when causal variants are sampled in a region with variants in long-range LD. 
+As expected, LDpred1 performs poorly in HLA scenarios, i.e.\ when causal variants are sampled from a long-range LD region. 
 In contrast, all LDpred2 models perform well in these two HLA scenarios, although LDpred2-auto performs slightly worse than other LDpred2 models.
 
 %% FIGURE 1 HERE
-\begin{figure}[htbp]
-\centerline{\includegraphics[width=0.95\textwidth]{AUC-simu}}
+\begin{figure}[htb]
+\centerline{\includegraphics[width=0.85\textwidth]{AUC-simu}}
 \caption{Results of the six simulation scenarios. 
 Scenarios are named in 4 parts separated by underscores: 1) ``all'' means that causal variants are randomly sampled anywhere on the genome while ``HLA'' means that they are sampled in the HLA region of chromosome 6 (25.5-33.5 Mb); 2) the heritability (in \%); 3) the number of causal variants; 4) the prevalence (in \%).
 Bars present the mean and 95\% CI of 10,000 non-parametric bootstrap replicates of the mean AUC of 10 simulations for each scenario. 
@@ -163,11 +163,13 @@ Bars present the mean and 95\% CI of 10,000 non-parametric bootstrap replicates 
 
 Figure \ref{fig:AUC-real} presents the results of real data applications comparing LDpred1 (v1.0.0 as implemented by \cite{vilhjalmsson2015modeling}) with the new LDpred2 (as implemented in R package bigsnpr). 
 Eight case-control phenotypes are used, summarized in table \ref{tab:sumstats}.
-For T1D, T2D, BRCA and PRCA, all main LDpred2 models perform much better than LDpred1. These improvements are also significant for MDD and CAD, albeit to a lesser extend. For example, for BRCA, AUC improves from 58.5\% with LDpred1 to 64.4\% with LDpred2, and from 54.9\% to 74.3\% for T1D. 
+For T1D, T2D, BRCA and PRCA, all main LDpred2 models perform much better than LDpred1. These improvements are also significant for MDD and CAD, albeit to a lesser extend. 
+For example, for BRCA, AUC improves from 58.9\% with LDpred1 to 64.6\% with LDpred2, and from 57.4\% to 77.0\% for T1D. 
 For Asthma and RA, predictive performances of LDpred1 and LDpred2 are similar.
-
 As in simulations, the sparse version of LDpred2 performs equally well as the original version.
-For PRCA and TD1, LDpred2-auto perform much worse than LDpred2, otherwise it performs similarly [TODO: CHANGE].
+Moreover, LDpred2-auto also perform  very well, and even better than LDpred2-grid for PRCA with an improvement from an AUC of 68.2\% to 70.2\%.
+When comparing to other PGS methods, we only report the best LDpred2 model (chosen using the validation set). 
+LDpred2 performs best for Asthma, RA, T1D and TD2, while lassosum performs best for BRCA, CAD, MDD and PRCA (Figure \ref{fig:AUC-all}).
 
 %% FIGURE 2 HERE
 \begin{figure}[htbp]
@@ -178,11 +180,6 @@ Bars present AUC values on the test set of UKBB (mean and 95\% CI from 10,000 bo
 }
 \label{fig:AUC-real}
 \end{figure}
-
-When comparing to other methods, we only report the best LDpred2 model (chosen using the validation set). 
-LDpred2 performs best for Asthma, RA, T1D and TD2, while lassosum performs best for BRCA, CAD, MDD and PRCA (Figure \ref{fig:AUC-all}).
-
-[TODO: COMPLETE]
 
 %% FIGURE 3 HERE
 \begin{figure}[htbp]
@@ -199,7 +196,7 @@ Bars present AUC values on the test set of UKBB (mean and 95\% CI from 10,000 bo
 \section{Discussion}
 
 Here we present LDpred2, a new version of LDpred. 
-LDpred is widely used and has the potential to provide polygenic models with good predictive performance \cite[]{khera2018genome}. 
+LDpred has been widely used and has the potential to provide polygenic models with good predictive performance \cite[]{khera2018genome}. 
 Yet, it has some instability issues that have been pointed out \cite[]{marquez2018modeling,lloyd2019improved} and likely contributed to discrepancies in reported prediction accuracies \cite[]{choi2019prsice,ge2019polygenic}.
 We have therefore implemented a new version of LDpred to solve these instability issues and improve its computational efficiency.
 
@@ -227,14 +224,11 @@ This sparse model performs equally well as the non-sparse model, therefore we en
 As for LDpred2-auto, which automatically estimates values for hyper-parameters $p$ and $h^2$, it performs equally well as other LDpred2 models in simulations, and also performs very well in real data applications, provided that some quality control is performed on summary statistics (see Supplementary Note).
 
 In conclusion, we have shown that LDpred2 provides a better, faster and more robust implementation of the LDpred model.
-When comparing to recently derived methods that showed higher predictive performance as compared to the previous version of LDpred, LDpred2 performs favorably, providing the highest predictive performance for half of the real traits tested, and very good predictive performance for the other half.
+When comparing to recently derived methods that showed higher predictive performance compared to the previous version of LDpred, LDpred2 performs favorably, providing the highest predictive performance for half of the real traits tested, and very good predictive performance for the other half.
 Note that the comparison may not be fair for C+T and SCT, as we use the same set of variants for all methods. 
 Indeed, one should probably use a set enriched for statistically significant variants in C+T and SCT \cite[]{prive2019making}.
-Further investigation is needed to determine whether doing so would be beneficial for other methods such as LDpred2, lassosum and PRS-CS, which may break some of the assumptions behind their respective models.
+Further investigation is needed to determine whether doing so would be beneficial for other methods such as LDpred2, lassosum and PRS-CS, or detrimental as it may break some of the assumptions behind their respective models.
 Selection of variants is therefore a direction of future research for us.
-
-[TALK ABOUT QUALITY CONTROL ON AF? -> ON SD, NEED A SUPP NOTE] 
-[ALSO TALK ABOUT MODEL FOR BINARY DATA]
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -266,7 +260,8 @@ Each simulation scenario is repeated 10 times and averages of the Area Under the
 
 We use the same data as in the simulation analyses. We use the same 10,000 individuals as validation set, and use the remaining 352,320 individuals as test set.
 We use external published GWAS summary statistics listed in table \ref{tab:sumstats}.
-We defined phenotypes as in \cite{prive2019making}. For details, please refer to our R code (Software and code availability section). [TODO: TALK ABOUT QC HERE]
+We defined phenotypes as in \cite{prive2019making}. Some quality control is applied to summary statistics (see Supplementary Note).
+For more details, please refer to our R code (Software and code availability section).
 
 %% TABLE 1 HERE
 \begin{table}[h]
@@ -290,7 +285,7 @@ We defined phenotypes as in \cite{prive2019making}. For details, please refer to
 
 In real data applications, we first compare all four LDpred2 models to the two LDpred1 models.
 Then, we compare the best of the four LDpred2 models (chosen using the validation set, and for each chromosome) to four other methods: Clumping and Thresholding (C+T), Stacked C+T (SCT), lassosum and PRS-CS \cite[]{prive2019making,mak2017polygenic,ge2019polygenic}.
-For C+T and SCT, we use a large grid of hyper-parameters as in \cite{prive2019making}. For C+T, we choose the best set of parameters on each chromosome individually and combine them using a proper scaling as done for LDpred2 (see section \ref{sec:bychr}).
+For C+T and SCT, we use a large grid of hyper-parameters as in \cite{prive2019making}.
 For lassosum, we use the default grid of hyper-parameters $s$ and $\lambda$. 
 Finally, for PRS-CS, we use the grid $\{10^{-6}, 10^{-5}, \dots, 1\}$ for the global scaling hyper-parameter $\Phi$, and the default values for hyper-parameters $a$ and $b$. 
 
@@ -374,7 +369,6 @@ Therefore, the posterior mean of $\beta_j$ is given by
 \omega_j = \dfrac{\bar{p}_j \tilde{\beta}_j}{1 + \dfrac{M p}{n h^2}} ~.
 \end{equation}
 
-%\begin{minipage}{.7\textwidth}
 \begin{algorithm}[H]
 \caption{LDpred, with hyper-parameters $p$ and $h^2$, LD matrix $\boldsymbol{R}$ and summary statistics $\boldsymbol{\hat{\gamma}}$, $\boldsymbol{\text{se}(\hat{\gamma})}$ and $\boldsymbol{n}$}\label{algo:ldpred}
 \begin{algorithmic}[1]
@@ -395,9 +389,7 @@ Therefore, the posterior mean of $\beta_j$ is given by
 	\State Return $\boldsymbol{\Omega} \cdot  \boldsymbol{\text{se}(\hat{\gamma})} \cdot \sqrt{\boldsymbol{n}}$ \Comment{Return posterior means, scaled back (see previous section)}
 \end{algorithmic} 
 \end{algorithm}
-%\end{minipage}
 
-%[CHANGE NOTATION OF SUMSTATS?]
 
 \subsection*{New LDpred2 models}
 
@@ -435,8 +427,7 @@ For example, chromosome 6 clearly encompasses a larger proportion of the heritab
 Assuming the same model for genetic effects genome-wide could result in model misspecification, which would lead to suboptimal predictive performance.
 Moreover, since the inverse of a block-diagonal matrix is formed from the inverse of each block, it should be safe to run LDpred2 for each chromosome and then combine the results. 
 To choose the best LDpred2 model, one can choose the best model according to their preferred criterion (e.g. max AUC). 
-Here, we use the Z-Score from the regression of the phenotype by the PRS since we have found it more robust than using the AUC. 
-Using the regression would also enable adjusting for covariates in this step.
+Here, we use the Z-Score from the regression of the phenotype by the PRS since we have found it more robust than using the AUC.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -446,7 +437,7 @@ Using the regression would also enable adjusting for covariates in this step.
 
 \section*{Software and code availability}
 
-[TODO] 
+[TODO: EXPORT CODE FROM CLUSTER] 
 
 All code used for this paper is available at \url{https://github.com/privefl/paper-ldpred2/tree/master/code}.
 The newest version of R package bigsnpr can be installed from GitHub (see \url{https://github.com/privefl/bigsnpr}).
@@ -474,5 +465,31 @@ The authors declare no competing interests.
 \bibliography{refs}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+
+\section*{Supplementary Note: quality control of summary statistics}
+
+For summary statistics of binary traits derived from a logistic regression, 
+\begin{equation}\label{eq:approx-sd}
+\text{sd}(\boldsymbol{g_j}) \approx \dfrac{2}{\text{se}(\hat{\gamma}_j) ~ \sqrt{n_\text{eff}}} ~,
+\end{equation}
+where $n_\text{eff} = \dfrac{4	}{1 / n_\text{case} + 1 / n_\text{control}}$. Anyway, we recommend to verify this assumption and to perform some quality control.
+Indeed, in simulations, the approximation of equation \eqref{eq:approx-sd} seems valid (Figure \ref{fig:sd-approx-simu}). 
+However, in real data applications, where summary statistics comes from a meta-analysis of many external datasets, this approximation can be invalidated (Figure \ref{fig:sd-approx-brca}).
+Let us denote by $\text{SD}_\text{ss}$ the standard deviations derived from the summary statistics and by $\text{SD}_\text{val}$ the standard deviations of genotypes of individuals in the validation set.
+We removed variants with $\text{SD}_\text{ss} < 0.5 \cdot \text{SD}_\text{val}$ or $\text{SD}_\text{ss} > 0.1 + \text{SD}_\text{val}$ or $\text{SD}_\text{ss} < 0.1$ or $\text{SD}_\text{val} < 0.05$ (Figure \ref{fig:sd-approx-brca}).
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.7\textwidth]{sd-approx-simu}}
+\caption{In simulations, standard deviations derived from summary statistics based on equation \eqref{eq:approx-sd} versus the standard deviations of genotypes of individuals in the validation set.}
+\label{fig:sd-approx-simu}
+\end{figure}
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.9\textwidth]{sd-approx-BRCA}}
+\caption{Standard deviations derived from summary statistics of breast cancer based on equation \eqref{eq:approx-sd} versus the standard deviations of genotypes of individuals in the validation set. Coloring shows the quality control applied in this paper.}
+\label{fig:sd-approx-brca}
+\end{figure}
 
 \end{document}
