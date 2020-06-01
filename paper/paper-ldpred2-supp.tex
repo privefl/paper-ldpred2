@@ -12,7 +12,6 @@
 \usepackage{rotating}
 \usepackage{color}
 \usepackage{graphicx}
-\usepackage{subcaption}
 \usepackage{amsmath, amsthm, amssymb}
 \usepackage{setspace}
 \usepackage{lineno}
@@ -40,7 +39,7 @@
 \usepackage{adjustbox}
 \usepackage{multirow}
 \usepackage{graphicx}
-%\graphicspath{{figures/}}
+\graphicspath{{../figures/}}
 \DeclareMathOperator*{\argmin}{\arg\!\min}
 
 \let\tabbeg\tabular
@@ -62,93 +61,35 @@
 
 \begin{document}
 
-\section*{Supplementary Materials}
-
 \renewcommand{\thefigure}{S\arabic{figure}}
 \setcounter{figure}{0}
 \renewcommand{\thetable}{S\arabic{table}}
 \setcounter{table}{0}
+\renewcommand{\theequation}{S\arabic{equation}}
+\setcounter{equation}{0}
 
-\subsection*{From marginal effects to joint effects}
+\section*{Supplementary Note: quality control of summary statistics}
 
-Here, we explain how we can obtain joint effects from summary statistics (marginal effects) and a correlation matrix.
-Let us denote by $S$ the diagonal matrix with standard deviations of the $p$ variants, $C_n = I_n - 1 1^T / n$ the centering matrix, $G$ the genotype matrix of $n$ individuals and $p$ variants, and $y$ the phenotype vector for $n$ individuals.
-Then, the marginal effects (assuming no other covariates than the intercept) are given by 
-\[\hat{\beta}_{marg} = S^{-2} G^T C_n y ~,\]
-while the joint effects are obtained by solving
-\[\begin{bmatrix} \hat{\alpha} \\ \hat{\beta}_{joint} \end{bmatrix} = \left(\begin{bmatrix} 1 & G \end{bmatrix}^T \begin{bmatrix} 1 & G \end{bmatrix}\right)^{-1} \begin{bmatrix} 1 & G \end{bmatrix}^T y ~.\]
-Using the Woodburry formula, we get 
-\[\hat{\beta}_{joint} = (G^T C_n G)^{-1} G^T C_n y ~.\]
-We further note that the correlation matrix of $G$ is \(K =  S^{-1} G^T C_n G  S^{-1}\).
-Then we get $\hat{\beta}_{joint} = S^{-1} K^{-1} S \hat{\beta}_{marg}$.
+For summary statistics of binary traits derived from a logistic regression, 
+\begin{equation}\label{eq:approx-sd}
+\text{sd}(\boldsymbol{g_j}) \approx \dfrac{2}{\text{se}(\hat{\gamma}_j) ~ \sqrt{n_\text{eff}}} ~,
+\end{equation}
+where $n_\text{eff} = \dfrac{4	}{1 / n_\text{case} + 1 / n_\text{control}}$. Anyway, we recommend to verify this assumption and to perform some quality control.
+Indeed, in simulations, the approximation of equation \eqref{eq:approx-sd} seems valid (Figure \ref{fig:sd-approx-simu}). 
+However, in real data applications, where summary statistics comes from a meta-analysis of many external datasets, this approximation can be invalidated (Figure \ref{fig:sd-approx-brca}).
+Let us denote by $\text{SD}_\text{ss}$ the standard deviations derived from the summary statistics and by $\text{SD}_\text{val}$ the standard deviations of genotypes of individuals in the validation set.
+We removed variants with $\text{SD}_\text{ss} < 0.5 \cdot \text{SD}_\text{val}$ or $\text{SD}_\text{ss} > 0.1 + \text{SD}_\text{val}$ or $\text{SD}_\text{ss} < 0.1$ or $\text{SD}_\text{val} < 0.05$ (Figure \ref{fig:sd-approx-brca}).
 
-For one marginal effect $\hat{\beta}$, let us denote by $y^*$ and $g^*$ the corresponding phenotype and genotype (residualized from $K$ covariates, e.g.\ centering them).
-Then,
-$\text{var}(\hat{\beta}) = \dfrac{(y^* - \hat{\beta} g^*)^T (y^* - \hat{\beta} g^*)}{(N - K - 1) ~ g^{*T} g^*} \approx \dfrac{y^{*T} y^*}{N ~ g^{*T} g^*} \approx \dfrac{\text{var}(y)}{N ~ \text{var}(g)}$.
-Thus, we can derive $\text{sd}(g) \approx \dfrac{\text{sd}(y)}{\text{sd}(\hat{\beta}) ~ \sqrt{N}}$ and $\left(\text{sd}(g) ~ \hat{\beta}\right) \approx \dfrac{\hat{\beta}}{\text{sd}(\hat{\beta})} \dfrac{\text{sd}(y)}{\sqrt{N}}$.
+\begin{figure}[htbp]
+	\centerline{\includegraphics[width=0.7\textwidth]{sd-approx-simu}}
+	\caption{In simulations, standard deviations derived from summary statistics based on equation \eqref{eq:approx-sd} versus the standard deviations of genotypes of individuals in the validation set.}
+	\label{fig:sd-approx-simu}
+\end{figure}
 
-Let us go back to the formula we derived before: $\hat{\beta}_{joint} = S^{-1} K^{-1} S \hat{\beta}_{marg}$. As $\text{sd}(y)$ is the same for all variants, it is cancelled out by $S^{-1}$ and $S$. Then it justifies the use of Z-scores ($\hat{\beta} / \text{sd}(\hat{\beta})$) divided by $\sqrt{N}$ as input for LDpred. Then, the effect sizes that LDpred outputs need to be scaled by multiplying by $\left(\text{sd}(\hat{\beta}) ~ \sqrt{N}\right)$.
-Note that LDpred (v1) and other similar methods scale the output dividing by the standard deviation of genotypes. This is correct when $\text{sd}(y) = 1$ only.
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\clearpage
-
-% latex table generated in R 3.6.0 by xtable 1.8-4 package
-% Sat Nov  9 10:17:25 2019
-\begin{table}[ht]
-\centering
-\caption{Number of UKBB individuals with (log squared) Mahalanobis distance lower than some threshold (top), and grouped by self-reported ancestry (left). Note that ``$<$ 12'' includes all individuals.} 
-\label{tab:homogeneous}
-\begin{tabular}{|l|r|r|r|r|r|r|r|r|r|r|}
-  \hline
- & $<$ 3 & $<$ 4 & $<$ 5 & $<$ 6 & $<$ 7 & $<$ 8 & $<$ 9 & $<$ 10 & $<$ 11 & $<$ 12 \\ 
-  \hline
-Prefer not to answer & 484 & 1013 & 1062 & 1099 & 1139 & 1177 & 1279 & 1405 & 1471 & 1583 \\ 
-  Do not know & 36 & 68 & 76 & 84 & 92 & 118 & 155 & 188 & 196 & 204 \\ 
-  White & 186 & 422 & 457 & 483 & 513 & 533 & 543 & 543 & 545 & 546 \\ 
-  Mixed & 2 & 6 & 6 & 7 & 8 & 15 & 26 & 42 & 46 & 46 \\ 
-  Asian or Asian British &  &  &  &  &  & 3 & 20 & 40 & 42 & 42 \\ 
-  Black or Black British & 1 & 2 & 2 & 2 & 2 & 2 & 2 & 4 & 6 & 26 \\ 
-  Chinese &  & 1 & 1 & 1 & 1 & 2 & 5 & 21 & 1423 & 1504 \\ 
-  Other ethnic group & 57 & 230 & 261 & 314 & 469 & 885 & 1939 & 2761 & 3681 & 4356 \\ 
-  British & 191713 & 400516 & 416492 & 424490 & 427769 & 429172 & 431026 & 431082 & 431089 & 431090 \\ 
-  Irish & 1416 & 12039 & 12620 & 12700 & 12734 & 12743 & 12759 & 12759 & 12759 & 12759 \\ 
-  Any other white background & 1468 & 4747 & 6953 & 9341 & 12979 & 14613 & 15741 & 15810 & 15820 & 15820 \\ 
-  White and Black Caribbean & 1 & 4 & 4 & 4 & 9 & 35 & 142 & 537 & 589 & 597 \\ 
-  White and Black African & 1 & 3 & 3 & 4 & 6 & 29 & 99 & 333 & 400 & 402 \\ 
-  White and Asian & 4 & 7 & 13 & 23 & 79 & 350 & 651 & 790 & 802 & 802 \\ 
-  Any other mixed background & 24 & 66 & 87 & 155 & 274 & 391 & 595 & 884 & 990 & 996 \\ 
-  Indian &  & 2 & 2 & 5 & 6 & 29 & 1682 & 5700 & 5716 & 5716 \\ 
-  Pakistani &  &  &  &  & 1 & 13 & 532 & 1747 & 1748 & 1748 \\ 
-  Bangladeshi &  &  &  &  &  &  & 2 & 220 & 221 & 221 \\ 
-  Any other Asian background &  &  &  & 1 & 6 & 66 & 427 & 1364 & 1730 & 1747 \\ 
-  Caribbean &  &  &  &  &  &  & 3 & 113 & 1323 & 4299 \\ 
-  African &  & 1 & 1 & 1 & 1 & 1 & 3 & 58 & 350 & 3205 \\ 
-  Any other Black background &  &  &  &  &  & 1 & 3 & 22 & 49 & 118 \\ 
-   \hline
-  All & 195393 & 419127 & 438040 & 448714 & 456088 & 460178 & 467634 & 476423 & 480996 & 487827 \\ 
-   \hline
-\end{tabular}
-\end{table}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\clearpage
-\subsection*{Projection onto reference PCA space}
-
-\begin{figure}[!htpb]
-%\centerline{\includegraphics[width=0.9\textwidth]{proj1000G-PC9-20.pdf}}
-\caption{Principal Component (PC) scores 9 to 20 of the 1000 Genomes project.
-Black points are the 60\% individuals used for computing PCA.
-Red points are the 40\% remaining individuals, projected by simply multiplying their genotypes by the corresponding PC loadings.
-Blue points are the 40\% remaining individuals, projected using the Online Augmentation, Decomposition, and Procrustes (OADP) transformation.
-Estimated shrinkage coefficients (comparing red and blue points) for these PCs are 2.79, 3.14 (PC10), 3.64, 3.18, 2.47, 3.88, 5.31, 5.84, 3.45, 6.55, 3.68 and 6.70 (PC20).
-\label{fig:proj1000G-2}}
+\begin{figure}[htbp]
+	\centerline{\includegraphics[width=0.9\textwidth]{sd-approx-BRCA}}
+	\caption{Standard deviations derived from summary statistics of breast cancer based on equation \eqref{eq:approx-sd} versus the standard deviations of genotypes of individuals in the validation set. Coloring shows the quality control applied in this paper.}
+	\label{fig:sd-approx-brca}
 \end{figure}
 
 

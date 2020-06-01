@@ -3,7 +3,7 @@
 *.dvi
 *.log
 *.out
-paper*.pdf
+paper-ldpred2.pdf
 *.synctex.gz
 *.aux
 *.tex.bak
