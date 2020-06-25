@@ -85,7 +85,7 @@
 
 \abstract{	
 Polygenic scores have become a central tool in human genetics research.
-LDpred is a popular and powerful method for deriving polygenic scores based on summary statistics and a matrix of correlation between genetic variants.
+LDpred is a popular method for deriving polygenic scores based on summary statistics and a matrix of correlation between genetic variants.
 However, LDpred has limitations that may reduce its predictive performance.
 Here we present LDpred2, a new version of LDpred that addresses these issues.
 We also provide two new options in LDpred2: a ``sparse'' option that can learn effects that are exactly 0, and an ``auto'' option that directly learns the two LDpred parameters from data.
@@ -458,9 +458,8 @@ A tutorial on the steps to run LDpred2 using some small example data is availabl
 
 \section*{Acknowledgements}
 
-Authors thank Yixuan Qiu for pointing to matrix-free solvers.
+Authors thank Naomi Wray and Alkes Price for pointing to issues due to long-range LD regions in LDpred1, Yixuan Qiu for pointing to matrix-free solvers, Doug Speed and others for early testing of the software and for providing useful feedback, GenomeDK and Aarhus University for providing computational resources and support that contributed to these research results.
 This research has been conducted using the UK Biobank Resource under Application Number 41181.
-Authors would also like to thank GenomeDK and Aarhus University for providing computational resources and support that contributed to these research results.
 
 \section*{Funding}
 
