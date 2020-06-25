@@ -1,0 +1,14 @@
+#!/bin/sh
+
+#SBATCH --time=<%= resources$t %>
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=<%= resources$c %>
+#SBATCH --mem=<%= resources$mem %>
+#SBATCH --job-name=<%= resources$name %>
+#SBATCH -o log/%x_%j.out
+## #SBATCH --mail-type=FAIL
+## #SBATCH --mail-user=florian.prive.21@gmail.com
+
+## Run R:
+## we merge R output with stdout from SLURM, which gets then logged via --output option
+Rscript -e 'batchtools::doJobCollection("<%= uri %>")'
