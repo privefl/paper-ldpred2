@@ -91,7 +91,7 @@ Here we present LDpred2, a new version of LDpred that addresses these issues.
 We also provide two new options in LDpred2: a ``sparse'' option that can learn effects that are exactly 0, and an ``auto'' option that directly learns the two LDpred parameters from data.
 We benchmark LDpred2 against the previous version on simulated and real data, demonstrating substantial improvements in robustness and efficiency, as well as providing much more accurate polygenic scores.
 We then show that LDpred2 compares favorably to other polygenic score methods recently developed.
-LDpred2-auto, which automatically estimates the two LDpred parameters, performs particularly well, provided some quality control is performed on the summary statistics.
+LDpred2-auto performs particularly well, provided some quality control is performed on the summary statistics.
 LDpred2 is implemented in R package bigsnpr.
 }
 
@@ -106,7 +106,7 @@ In recent years the use of polygenic scores (PGS) has become widespread. A PGS a
 Moreover, there are high hopes for using these scores in clinical practice to improve disease risk estimates and prognostic accuracies.
 The heritability, i.e.\ the proportion of phenotypic variance that is attributable to genetics, determines an upper limit on the predictive performance of PGS and thus their value as a diagnostic tool.
 Nevertheless, a number of studies have explored the use of PGS in clinical settings \cite[]{pashayan2015implications,willoughby2019genetic,abraham2019genomic}.
-PGS are also extensively used in epidemiology and economics as predictive variables of interest \cite[]{musliner2015polygenic,horsdal2019association,barth2020genetic}. 
+PGS are also extensively used in epidemiology and economics as predictive variables of interest \cite[]{musliner2015polygenic,horsdal2019association,barth2020genetic,harden2020using}. 
 For example, a recently derived PGS for education attainment has been one of the most predictive variables in behavioural sciences so far \cite[]{allegrini2019genomic}.
 
 LDpred is a popular method for deriving polygenic scores based on summary statistics and a Linkage Disequilibrium (LD) matrix only \cite[]{vilhjalmsson2015modeling}.
@@ -199,7 +199,7 @@ Bars present AUC values on the test set of UKBB (mean and 95\% CI from 10,000 bo
 \section{Discussion}
 
 The previous version of LDpred has been widely used and has the potential to provide polygenic models with good predictive performance \cite[]{khera2018genome}. 
-Yet, it has instability issues that have been pointed out \cite[]{marquez2018modeling,lloyd2019improved} and likely contributed to discrepancies in reported prediction accuracies \cite[]{choi2019prsice,ge2019polygenic}.
+Yet, it has instability issues that have been pointed out \cite[]{marquez2018modeling,lloyd2019improved} and likely contributed to discrepancies in reported prediction accuracies \cite[]{choi2019prsice,ge2019polygenic,chun2020non}.
 We have therefore implemented a new version of LDpred, LDpred2, to address these issues and improve its computational efficiency.
 We show that LDpred2 is more stable and provides higher predictive performance than LDpred1, particularly when handling long-range LD regions or less polygenic traits.
 We hypothesize that LDpred1 does not use a LD window size that is large enough to account for long-range LD such as in the HLA region.
@@ -229,7 +229,7 @@ This quality control aims at ensuring that effects are transferable from the ext
 In conclusion, we have shown that LDpred2 provides a better, faster and more robust implementation of the LDpred model.
 LDpred2 also performs favorably when comparing it to recently derived methods that showed higher predictive performance compared to the previous version of LDpred. 
 Indeed, LDpred2 (especially LDpred2-auto) provides the highest predictive performance for almost all the real traits tested here, and very good predictive performance for the others.
-Note that the comparison may not be totally fair for C+T and SCT, as we use the same set of variants for all methods. 
+Note that the comparison may not be fair for C+T and SCT, as we use the same set of variants for all methods. 
 Indeed, one should probably use a set enriched for statistically significant variants in C+T and SCT \cite[]{prive2019making}.
 Further investigation is needed to determine whether doing so would be beneficial for other methods such as LDpred2, lassosum and PRS-CS, or detrimental as it may break some of the assumptions behind their respective models.
 For now, we recommend using the same HapMap3 variants used in PRS-CS and used here.
