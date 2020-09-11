@@ -18,6 +18,8 @@
 \usepackage{hyperref}
 \usepackage{bbm}
 \usepackage{makecell}
+\usepackage{placeins}
+\usepackage{subcaption}
 
 %\renewcommand{\arraystretch}{1.8}
 
@@ -68,17 +70,7 @@
 \renewcommand{\theequation}{S\arabic{equation}}
 \setcounter{equation}{0}
 
-\section*{Supplementary Note: quality control of summary statistics}
-
-For summary statistics of binary traits derived from a logistic regression, 
-\begin{equation}\label{eq:approx-sd}
-\text{sd}(\boldsymbol{G_j}) \approx \dfrac{2}{\text{se}(\hat{\gamma}_j) ~ \sqrt{n_\text{eff}}} ~,
-\end{equation}
-where $n_\text{eff} = \dfrac{4	}{1 / n_\text{case} + 1 / n_\text{control}}$. Anyway, we recommend to verify this assumption and to perform some quality control.
-Indeed, in simulations, the approximation of equation \eqref{eq:approx-sd} seems valid (Figure \ref{fig:sd-approx-simu}). 
-However, in real data applications, where summary statistics come from a meta-analysis of many external datasets, this approximation can be invalidated (Figure \ref{fig:sd-approx-brca}).
-Let us denote by $\text{SD}_\text{ss}$ the standard deviations derived from the summary statistics (right-hand side of equation \eqref{eq:approx-sd}) and by $\text{SD}_\text{val}$ the standard deviations of genotypes of individuals in the validation set (left-hand side).
-We removed variants with $\text{SD}_\text{ss} < 0.5 \cdot \text{SD}_\text{val}$ or $\text{SD}_\text{ss} > 0.1 + \text{SD}_\text{val}$ or $\text{SD}_\text{ss} < 0.1$ or $\text{SD}_\text{val} < 0.05$ (Figure \ref{fig:sd-approx-brca}).
+\section*{Quality control of summary statistics}
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=0.7\textwidth]{sd-approx-simu}}
@@ -92,6 +84,74 @@ We removed variants with $\text{SD}_\text{ss} < 0.5 \cdot \text{SD}_\text{val}$ 
 	\label{fig:sd-approx-brca}
 \end{figure}
 
+\FloatBarrier
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+
+\subsection*{Real data}
+
+\begin{figure}[htb]
+	\centerline{\includegraphics[width=0.85\textwidth]{AUC-auto}}
+	\caption{}
+	\label{fig:AUC-auto}
+\end{figure}
+
+\FloatBarrier
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+
+\subsection*{Running LDpred2 per chromosome or genome-wide?}
+
+\begin{figure}[htb]
+	\centerline{\includegraphics[width=0.85\textwidth]{AUC-simu2-ldpred2}}
+	\caption{}
+	\label{fig:AUC-simu2-ldpred2}
+\end{figure}
+
+\begin{figure}[htb]
+	\centerline{\includegraphics[width=0.85\textwidth]{AUC-real-ldpred2}}
+	\caption{}
+	\label{fig:AUC-real-ldpred2}
+\end{figure}
+
+\FloatBarrier
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+
+\subsection*{Estimation of parameters in LDpred2}
+
+\begin{figure}[htb]
+	\centerline{\includegraphics[width=0.85\textwidth]{table_h2}}
+	\caption{}
+	\label{fig:TOCHANGE}
+\end{figure}
+
+\begin{figure}[htb]
+	\centerline{\includegraphics[width=0.85\textwidth]{CAD-grid}}
+	\caption{}
+	\label{fig:CAD-grid}
+\end{figure}
+
+
+\begin{figure}[htb]
+\begin{subfigure}[b]{\textwidth}
+	\centerline{\includegraphics[width=0.8\textwidth]{CAD-auto}}
+\end{subfigure}
+
+\begin{subfigure}[b]{\textwidth}
+	\centerline{\includegraphics[width=0.8\textwidth]{CAD-auto2}}
+\end{subfigure}
+\caption{}
+\label{fig:CAD-auto}
+\end{figure}
+
+\FloatBarrier
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
