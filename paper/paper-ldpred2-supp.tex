@@ -70,25 +70,7 @@
 \renewcommand{\theequation}{S\arabic{equation}}
 \setcounter{equation}{0}
 
-\section*{Quality control of summary statistics}
-
-\begin{figure}[htbp]
-	\centerline{\includegraphics[width=0.7\textwidth]{sd-approx-simu}}
-	\caption{In simulations, standard deviations derived from summary statistics based on equation \eqref{eq:approx-sd} versus the standard deviations of genotypes of individuals in the validation set.}
-	\label{fig:sd-approx-simu}
-\end{figure}
-
-\begin{figure}[htbp]
-	\centerline{\includegraphics[width=0.9\textwidth]{sd-approx-BRCA}}
-	\caption{Standard deviations derived from summary statistics of breast cancer based on equation \eqref{eq:approx-sd} versus the standard deviations of genotypes of individuals in the validation set. Coloring shows the quality control applied in this paper.}
-	\label{fig:sd-approx-brca}
-\end{figure}
-
-\FloatBarrier
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\clearpage
 
 \subsection*{Real data}
 
@@ -149,6 +131,26 @@
 \end{subfigure}
 \caption{}
 \label{fig:CAD-auto}
+\end{figure}
+
+\FloatBarrier
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+
+\section*{Quality control of summary statistics}
+
+\begin{figure}[htbp]
+	\centerline{\includegraphics[width=0.7\textwidth]{sd-approx-simu}}
+	\caption{In simulations, standard deviations derived from summary statistics based on equation \eqref{eq:approx-sd} versus the standard deviations of genotypes of individuals in the validation set.}
+	\label{fig:sd-approx-simu}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centerline{\includegraphics[width=0.9\textwidth]{sd-approx-BRCA}}
+	\caption{Standard deviations derived from summary statistics of breast cancer based on equation \eqref{eq:approx-sd} versus the standard deviations of genotypes of individuals in the validation set. Coloring shows the quality control applied in this paper.}
+	\label{fig:sd-approx-brca}
 \end{figure}
 
 \FloatBarrier

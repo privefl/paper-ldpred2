@@ -212,6 +212,8 @@ LDpred2 performs best for Asthma, RA, T1D and TD2, while lassosum performs best 
 
 [TODO AGAIN]
 
+[NEED TO INCLUDE FIGURE \ref{fig:AUC-auto} ABOUT AUTO MODELS]
+
 %% FIGURE 4 HERE
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=0.95\textwidth]{AUC-all}}
@@ -224,12 +226,12 @@ LDpred2 performs best for Asthma, RA, T1D and TD2, while lassosum performs best 
 
 \subsection*{Running LDpred2 per chromosome or genome-wide?}
 
-Most results show that it is beneficial to run LDpred2 genome-wide instead of per chromosome, as it was recommended in the first versions of this paper.
-[DESCRIBE ALL FIGURES SHOWING THAT] 
-
-Figure \ref{fig:AUC-simu2-ldpred2} shows 
-
-Figure \ref{fig:AUC-real-ldpred2} shows 
+Most results show that it is beneficial to run LDpred2 genome-wide instead of per chromosome, contrary to was recommended in the first versions of this paper.
+Figure \ref{fig:AUC-simu2-ldpred2} shows that it can be beneficial to run all LDpred2 models genome-wide rather than per chromosome, especially when GWAS shample size is small.
+For example, in the scenario with the sample size of 20,000, switching running LDpred2 per chromosome to running it genome-wide improves AUC of LDpred2-inf from [TODO] to, LDpred2-grid from to, and LDpred2-auto from to [TODO].
+We note that however that the simulation scenario used to produce results in figure \ref{fig:AUC-simu2-ldpred2} is assuming the same genome-wide disease architecture, i.e.\ 3000 causal variants located anywhere on the genome and whose effects are drawn from the same normal distribution.
+Figure \ref{fig:AUC-real-ldpred2} shows that it can be beneficial to run all LDpred2 models genome-wide rather than per chromosome for real traits as well. 
+Indeed, except for LDpred2-inf applied to Type 1 Diabetes (T1D) for which running it per chromosome provides an AUC of [TODO] versus of [TODO] when run genome-wide, all other cases show similar or better performance for running all variants of LDpred2 genome-wide.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -288,31 +290,35 @@ We use 10,000 individuals as validation set for choosing optimal hyper-parameter
 We use 300,000 other individuals for running logistic GWAS to create summary statistics.
 We use the remaining 52,320 individuals as test set for evaluating models.
 
-We simulate binary phenotypes with a heritability of $h^2=0.4$ (or 0.3)  using a Liability Threshold Model (LTM) with a prevalence of 15\% \cite[]{falconer1965inheritance}. 
+We simulate binary phenotypes with a heritability of $h^2=0.4$ (or $h^2=0.3$ when causal effects are all located in the HLA region of chromosome 6)  using a Liability Threshold Model (LTM) with a prevalence of 15\% \cite[]{falconer1965inheritance}. 
 We vary the number of causal variants (300, 3000, 30,000, or 300,000) to match a range of genetic architectures from low to high polygenicity.
 Liability scores are computed from a model with additive effects only: we compute the liability score of the $i$-th individual as \(y_i = \sum_{j\in S_\text{causal}} w_j \widetilde{G}_{i,j} + \epsilon_i,\) where $S_\text{causal}$ is the set of causal variants, $w_j$ are weights generated from a Gaussian distribution $N(0, h^2 / \vert S_\text{causal} \vert)$, $G_{i,j}$ is the allele count of individual $i$ for variant $j$, $\widetilde{G}_{i,j}$ corresponds to its standardized version (zero mean and unit variance), and $\epsilon_i$ follows a Gaussian distribution $N(0, 1 - h^2)$.
 Causal variants are chosen randomly anywhere on the genome. 
+Such simulation of phenotypes based on real genotypes is implemented in function \texttt{snp\_simuPheno} of R package bigsnpr.
+We also vary the sample size to compute GWAS summary statistics in the scenario with 3000 causal variants; in addition to a sample size of 300,000, we also use 10,000, 20,000, 50,000 and 120,000. 
 We design two other simulation scenarios with 300 or 3000 causal variants randomly chosen in the HLA region (chromosome 6, 25.5-33.5 Mb).
 Both parts of the $y_i$'s are scaled such that the variance of the genetic liability is exactly $h^2$ and the variance of the total liability is exactly $1$. 
-Such simulation of phenotypes based on real genotypes is implemented in function \texttt{snp\_simuPheno} of R package bigsnpr.
-Each simulation scenario is repeated 10 times and averages of the Area Under the ROC Curve (AUC) are reported. 
+Finally, we design a seventh simulation scenario as a mixture of previous scenarios; we simulate 300 causal variants in the HLA region explaining 20\% of the variance in liability, and 10,000 causal variants anywhere on the genome explaining another 20\% (thus $h^2 = 0.4$ in total).
+
+All simulation scenarios are summarized in table \ref{tab:simus}.
+Each simulation scenario is repeated 10 times and averages of the Area Under the ROC Curve (AUC) are reported. The 95\% confidence interval (CI) from 10,000 non-parametric bootstrap replicates of the mean AUC of the 10 simulations for each scenario is also reported. 
 
 \begin{table}[ht]
 	\centering
-	\begin{tabular}{|c|c|c|c|c|c|c|}
+	\begin{tabular}{|c|c|c|c|c|c|c|c|}
 		\hline
-		Simulation & Number and location of causal variants & Heritability & Prevalence \\
+		Simulation & Number and location of causal variants & Heritability & N (x1000) &  Prevalence \\
 		\hline
-		all\_40\_300 & 300 anywhere on the genome & 40\% & 15\% \\
-		all\_40\_3000 & 3000 anywhere on the genome & 40\% & 15\% \\
-		all\_40\_30000 & 30,000 anywhere on the genome & 40\% & 15\% \\
-		all\_40\_300000 & 300,000 anywhere on the genome & 40\% & 15\% \\
-		HLA\_30\_300 & 300 in the HLA region & 30\% & 15\% \\
-		HLA\_30\_3000 & 3000 in the HLA region & 30\% & 15\% \\
-		both\_40 & 10,000 anywhere on the genome + 300 in the HLA region & 20\% + 20\% & 15\% \\
+		all\_40\_300 & 300 anywhere on the genome & 40\% & 300 & 15\% \\
+		all\_40\_3000 & 3000 anywhere on the genome & 40\% & 10, 20, 50, 120, 300 & 15\% \\
+		all\_40\_30000 & 30,000 anywhere on the genome & 40\% & 300 & 15\% \\
+		all\_40\_300000 & 300,000 anywhere on the genome & 40\% & 300 & 15\% \\
+		HLA\_30\_300 & 300 in the HLA region & 30\% & 300 & 15\% \\
+		HLA\_30\_3000 & 3000 in the HLA region & 30\% & 300 & 15\% \\
+		both\_40 & 10,000 anywhere on the genome + 300 in the HLA region & 20\% + 20\% & 300 & 15\% \\
 		\hline
 	\end{tabular}
-\caption{The seven simulations scenarios. \label{tab:simus}}
+\caption{The seven simulations scenarios. N: GWAS sample size. \label{tab:simus}}
 \end{table}
 
 
@@ -320,7 +326,7 @@ Each simulation scenario is repeated 10 times and averages of the Area Under the
 
 We use the same data as in the simulation analyses. We use the same 10,000 individuals as validation set, and use the remaining 352,320 individuals as test set.
 We use external published GWAS summary statistics listed in table \ref{tab:sumstats}.
-We defined phenotypes as in \cite{prive2019making}. Some quality control is applied to summary statistics (see Supplementary Note).
+We defined phenotypes as in \cite{prive2019making}. Some quality control is applied to summary statistics (see Method section ``Quality control of summary statistics'' below).
 For more details, please refer to our R code (Software and code availability section).
 
 %% TABLE 1 HERE
@@ -343,11 +349,15 @@ For more details, please refer to our R code (Software and code availability sec
 	\caption{Summary of external GWAS summary statistics used. The GWAS sample size is the number of cases / controls in the GWAS. \label{tab:sumstats}}
 \end{table}
 
+[TODO: CHANGE]
 In real data applications, we first compare all four LDpred2 models to the two LDpred1 models.
-Then, we compare the best of the four LDpred2 models (chosen using the validation set, and for each chromosome) and LDpred2-auto to four other methods: Clumping and Thresholding (C+T), Stacked C+T (SCT), lassosum and PRS-CS \cite[]{prive2019making,mak2017polygenic,ge2019polygenic}.
-For C+T and SCT, we use a large grid of hyper-parameters as in \cite{prive2019making}.
+Then, we compare LDpred2-inf, LDpred2-grid and LDpred2-auto to several other methods: Clumping and Thresholding (C+T), Stacked C+T (SCT), lassosum(-auto), PRS-CS(-auto) and SBayesR \cite[]{prive2019making,mak2017polygenic,ge2019polygenic,lloyd2019improved}.
+For C+T and SCT, we use a large grid of hyper-parameters as in \cite{prive2019making} [TODO: DESCRIBE PARAMETERS].
 For lassosum, we use the default grid of hyper-parameters $s$ and $\lambda$. 
-Finally, for PRS-CS, we use the grid $\{10^{-6}, 10^{-5}, \dots, 1\}$ for the global scaling hyper-parameter $\Phi$, and the default values for hyper-parameters $a$ and $b$. 
+We also alternatively choose the optimal hyper-parameters based on pseudo-validation (instead of choosing them based on performance in the validation set) and refer to this method as lassosum-auto.
+Finally, for PRS-CS, we use the grid $\{10^{-6}, 10^{-5}, 10^{-4}, 10^{-3}, 0.01, 0.1, 1\}$ for the global scaling hyper-parameter $\Phi$, and the default values for hyper-parameters $a$ and $b$. PRS-CS-auto automatically estimates $\Phi$.
+
+[TODO: DESCRIBE SBayesR]
 
 
 \subsection*{From marginal effects to joint effects}
@@ -373,7 +383,11 @@ For the marginal effect $\hat{\gamma}_j$ of variant $j$, let us denote by $\bold
 Then,
 \[\left(\text{se}(\hat{\gamma}_j)\right)^2 = \dfrac{(\boldsymbol{\breve{y}} - \hat{\gamma}_j \boldsymbol{\breve{G}_j})^T (\boldsymbol{\breve{y}} - \hat{\gamma}_j \boldsymbol{\breve{G}_j})}{(n - K - 1) ~ \boldsymbol{\breve{G}_j}^T \boldsymbol{\breve{G}_j}} \approx \dfrac{\boldsymbol{\breve{y}}^T \boldsymbol{\breve{y}}}{n ~ \boldsymbol{\breve{G}_j}^T \boldsymbol{\breve{G}_j}} \approx \dfrac{\text{var}(\boldsymbol{y})}{n ~ \text{var}(\boldsymbol{G_j})} ~.\]
 The first approximation is possible because $\hat{\gamma}_j$ is expected to be small, while the second approximation assumes that the effects from covariates are small. 
-Thus, we can derive $\text{sd}(\boldsymbol{G_j}) \approx \dfrac{\text{sd}(\boldsymbol{y})}{\text{se}(\hat{\gamma}_j) ~ \sqrt{n}}$ and then $\left(\text{sd}(\boldsymbol{G_j}) ~ \hat{\gamma}_j\right) \approx \dfrac{\hat{\gamma}_j}{\text{se}(\hat{\gamma}_j)} \dfrac{\text{sd}(\boldsymbol{y})}{\sqrt{n}}$.
+Thus we can derive 
+\begin{equation}\label{eq:approx-sd-lin}
+\text{sd}(\boldsymbol{G_j}) \approx \dfrac{\text{sd}(\boldsymbol{y})}{\text{se}(\hat{\gamma}_j) ~ \sqrt{n}}
+\end{equation}
+and then $\left(\text{sd}(\boldsymbol{G_j}) ~ \hat{\gamma}_j\right) \approx \dfrac{\hat{\gamma}_j}{\text{se}(\hat{\gamma}_j)} \dfrac{\text{sd}(\boldsymbol{y})}{\sqrt{n}}$.
 Let us go back to equation \ref{eq:joint}. 
 As $\text{sd}(\boldsymbol{y})$ is the same for all variants, it is cancelled out by $\boldsymbol{S}^{-1}$ and $\boldsymbol{S}$, therefore we can assume that $\text{var}(\boldsymbol{y}) = 1$. 
 It justifies the use of the Z-scores ($\hat{\gamma}_j ~/~ \text{se}(\hat{\gamma}_j)$) divided by $\sqrt{n}$ as input for LDpred (first line of algorithm \ref{algo:ldpred}). Then, the effect sizes that LDpred outputs need to be scaled back by multiplying by $\left(\text{se}(\hat{\gamma}_j) ~ \sqrt{n}\right)$ (last line of algorithm \ref{algo:ldpred}).
@@ -382,6 +396,18 @@ Note that LDpred1 and other similar methods scale the output dividing by the sta
 In the case of binary phenotypes, the approximation of the standard deviations is slightly different (see Supplementary Note).
 
 
+\subsection*{Quality control of summary statistics}
+
+For summary statistics of binary traits derived from a logistic regression, instead of equation \eqref{eq:approx-sd-lin}, we have
+\begin{equation}\label{eq:approx-sd}
+\text{sd}(\boldsymbol{G_j}) \approx \dfrac{2}{\text{se}(\hat{\gamma}_j) ~ \sqrt{n_\text{eff}}} ~,
+\end{equation}
+where $n_\text{eff} = \dfrac{4	}{1 / n_\text{case} + 1 / n_\text{control}}$. We recommend to verify this assumption and to perform some quality control.
+Indeed, in simulations, the approximation of equation \eqref{eq:approx-sd} seems valid (Figure \ref{fig:sd-approx-simu}). 
+However, in real data applications, where summary statistics come from a meta-analysis of many external datasets, this approximation can be invalidated (Figure \ref{fig:sd-approx-brca}).
+Let us denote by $\text{SD}_\text{ss}$ the standard deviations derived from the summary statistics (right-hand side of equation \eqref{eq:approx-sd-lin} or \eqref{eq:approx-sd}) and by $\text{SD}_\text{val}$ the standard deviations of genotypes of individuals in the validation set (left-hand side).
+Note that, in order to compute $\text{SD}_\text{ss}$ in the case of summary statistics from a linear regression, $\text{sd}(\boldsymbol{y})$ from equation \eqref{eq:approx-sd-lin} can be estimated using e.g.\ the median value of $\text{sd}(\boldsymbol{G_j}) \cdot \text{se}(\hat{\gamma}_j) \cdot \sqrt{n}$.
+We recommend removing variants with $\text{SD}_\text{ss} < 0.5 \cdot \text{SD}_\text{val}$ or $\text{SD}_\text{ss} > 0.1 + \text{SD}_\text{val}$ or $\text{SD}_\text{ss} < 0.1$ or $\text{SD}_\text{val} < 0.05$ (Figure \ref{fig:sd-approx-brca}).
 
 
 \subsection*{Overview of LDpred model}
@@ -473,6 +499,7 @@ When running LDpred2-auto, we run it 30 times with $h^2_\text{LDSC}$ as initial 
 Running many Gibbs chains aims at checking that models did not diverge (and hopefully converged).
 As a criterion for non-divergence, we compute the standard deviations of the resulting predictors from the 30 models, keep only those within 3 median absolute deviations from their median, and average the remaining vectors of effects as final effect sizes for the ``auto'' version.
 
+
 \subsection*{New strategy for local correlation}
 
 There is a window size parameter that needs to be set in LDpred; for a given variant, correlations with other variants outside of this window are assumed to be 0.
@@ -485,6 +512,7 @@ We provide function \texttt{snp\_asGeneticPos} in package bignspr to easily inte
 We recommend to use genetic positions and to use a size parameter of 3 cM when computing the correlation between variants for LDpred2. 
 Note that, in the code, we use \texttt{size = 3 / 1000} since parameter \texttt{size} is internally multiplied by 1000 in the bigsnpr functions.
 
+
 \subsection*{New strategy for running LDpred2}\label{sec:bychr}
 
 We run LDpred2 per chromosome.
@@ -496,18 +524,6 @@ Assuming the same model for genetic effects genome-wide could result in model mi
 Moreover, since the inverse of a block-diagonal matrix is formed from the inverse of each block, it should be safe to run LDpred2 for each chromosome and then combine the results. 
 To choose the best LDpred2 model, one can choose the best model according to their preferred criterion (e.g. max AUC). 
 Here, we use the Z-Score from the regression of the phenotype by the PRS since we have found it more robust than using the AUC.
-
-\subsection*{Quality control of summary statistics}
-
-For summary statistics of binary traits derived from a logistic regression, 
-\begin{equation}\label{eq:approx-sd}
-\text{sd}(\boldsymbol{G_j}) \approx \dfrac{2}{\text{se}(\hat{\gamma}_j) ~ \sqrt{n_\text{eff}}} ~,
-\end{equation}
-where $n_\text{eff} = \dfrac{4	}{1 / n_\text{case} + 1 / n_\text{control}}$. Anyway, we recommend to verify this assumption and to perform some quality control.
-Indeed, in simulations, the approximation of equation \eqref{eq:approx-sd} seems valid (Figure \ref{fig:sd-approx-simu}). 
-However, in real data applications, where summary statistics come from a meta-analysis of many external datasets, this approximation can be invalidated (Figure \ref{fig:sd-approx-brca}).
-Let us denote by $\text{SD}_\text{ss}$ the standard deviations derived from the summary statistics (right-hand side of equation \eqref{eq:approx-sd}) and by $\text{SD}_\text{val}$ the standard deviations of genotypes of individuals in the validation set (left-hand side).
-We removed variants with $\text{SD}_\text{ss} < 0.5 \cdot \text{SD}_\text{val}$ or $\text{SD}_\text{ss} > 0.1 + \text{SD}_\text{val}$ or $\text{SD}_\text{ss} < 0.1$ or $\text{SD}_\text{val} < 0.05$ (Figure \ref{fig:sd-approx-brca}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -524,7 +540,7 @@ A tutorial on the steps to run LDpred2 using some small example data is availabl
 
 \section*{Acknowledgements}
 
-Authors thank Naomi Wray and Alkes Price for pointing to issues due to long-range LD regions in LDpred1, Yixuan Qiu for pointing to matrix-free solvers, Doug Speed and others for early testing of the software and for providing useful feedback, GenomeDK and Aarhus University for providing computational resources and support that contributed to these research results.
+Authors would like to thank the four reviewers of this paper for their relevant comments and valuable suggestions, Naomi Wray and Alkes Price for pointing to issues due to long-range LD regions in LDpred1, Yixuan Qiu for pointing to matrix-free solvers, Doug Speed and others for early testing of the software and for providing useful feedback, GenomeDK and Aarhus University for providing computational resources and support that contributed to these research results.
 This research has been conducted using the UK Biobank Resource under Application Number 41181.
 
 \section*{Funding}
