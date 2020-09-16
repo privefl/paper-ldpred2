@@ -104,8 +104,8 @@ LDpred2 is implemented in R package bigsnpr.
 \section{Introduction}
 
 In recent years the use of polygenic scores (PGS) has become widespread. A PGS aggregates (risk) effects across many genetic variants into a single predictive score. These scores have proven useful for studying the genetic architecture and relationships between diseases and traits \cite[]{purcell2009common,kong2018nature}.
-Moreover, there are high hopes for using these scores in clinical practice to improve disease risk estimates and prognostic accuracies.
-The heritability, i.e.\ the proportion of phenotypic variance that is attributable to genetics, determines an upper limit on the predictive performance of PGS and thus their value as a diagnostic tool.
+Moreover, there are high hopes for using these scores in clinical practice to improve disease risk estimates and predictive accuracy.
+The heritability, i.e.\ the proportion of phenotypic variance that is attributable to genetics, determines an upper limit on the predictive performance of PGS and thus their value as a predictive tool.
 Nevertheless, a number of studies have explored the use of PGS in clinical settings \cite[]{pashayan2015implications,willoughby2019genetic,abraham2019genomic}.
 PGS are also extensively used in epidemiology and economics as predictive variables of interest \cite[]{musliner2015polygenic,horsdal2019association,barth2020genetic,harden2020using}. 
 For example, a recently derived PGS for education attainment has been one of the most predictive variables in behavioural sciences so far \cite[]{allegrini2019genomic}.
@@ -135,9 +135,9 @@ Here we present LDpred2, a new version of LDpred \cite[]{vilhjalmsson2015modelin
 LDpred2 has 4 options: 1) LDpred2-inf, which provides an analytical solution under the infinitesimal model of LDpred1; 2) LDpred2-grid (or simply LDpred2) that is the main LDpred model, where a grid of values for hyper-parameters $p$ (the proportion of causal variants) and $h^2$ (the SNP heritability) are tuned using a validation set; 3) LDpred2-sparse, which is similar to LDpred2-grid but where effects can be exactly 0, offering a version of LDpred that can provide sparse effects; 4) LDpred2-auto, which automatically estimates $p$ and $h^2$ from data and therefore is free of hyper-parameters to tune.
 As a recall, LDpred v1 has two options: LDpred1-inf, and LDpred1-grid where only $p$ is optimized and $h^2$ is estimated from constrained LD score regression \cite[]{bulik2015ld}.
 
-We compare the two versions of LDpred using multiple simulation scenarios to understand the expected impact of using the new version of LDpred. We also compare these two versions of LDpred using eight case-control phenotypes of major interest and for which there are published external summary statistics available and a substantial number of cases in the UK Biobank data. 
+We make use of the UK Biobank data to compare the two versions of LDpred using multiple simulation scenarios to understand the expected impact of using the new version of LDpred. We also compare these two versions of LDpred using eight case-control phenotypes of major interest and for which there are published external summary statistics available and a substantial number of cases in the UK Biobank data. 
 We also compare running LDpred2 (including choosing optimal hyper-paramaters) per chromosome (``perchr'') or genome-wide (``gwide'').
-Finally, we compare LDpred2 to several other methods: Clumping and Thresholding (C+T), Stacked C+T (SCT), lassosum, PRS-CS and SBayesR \cite[]{prive2019making,mak2017polygenic,ge2019polygenic,lloyd2019improved}.
+Finally, we use external  compare LDpred2 to several other methods: Clumping and Thresholding (C+T), Stacked C+T (SCT), lassosum, PRS-CS and SBayesR \cite[]{prive2019making,mak2017polygenic,ge2019polygenic,lloyd2019improved}.
 Area Under the ROC Curve (AUC) values are reported.
 
 
@@ -268,7 +268,6 @@ It takes 11 minutes to pre-compute the LD matrix for 10,000 individuals and 100,
 LDpred2 also extends the original LDpred model in two ways.
 First, we provide a sparse option in LDpred2-grid which provides models that truly encourage sparsity, in contrast to LDpred1 which outputs very small non-zero effect sizes \cite[]{cecile2019polygenic}.
 In practice, the sparse version of LDpred2 can drastically reduce the number of variants used in the PGS without impacting its predictive performance, as opposed to discarding the smallest effects after having run LDpred (as shown in \cite{bolli2019software}).
-%This sparse model performs equally well as the non-sparse model, therefore we encourage users to test it in the grid and to choose it if it performs better or equally well as the non-sparse model.
 The second extension is LDpred2-auto, which automatically estimates values for hyper-parameters $p$ and $h^2$, therefore it does not require a validation step to choose hyper-parameters, making it an attractive option in many applications. 
 LDpred2-auto performs equally well as other LDpred2 models in simulations. It also performs very well in real data applications, provided that some quality control is performed on summary statistics (see Supplementary Note).
 This quality control aims at ensuring that effects are transferable from the external GWAS summary statistics to the data where PGS are computed.
@@ -366,6 +365,7 @@ For C+T and SCT, we use a large grid of hyper-parameters as in \cite{prive2019ma
 For lassosum, we use the default grid of hyper-parameters $s$ and $\lambda$. 
 We also alternatively choose the optimal hyper-parameters based on pseudo-validation (instead of choosing them based on performance in the validation set) and refer to this method as lassosum-auto.
 Finally, for PRS-CS, we use the grid $\{10^{-6}, 10^{-5}, 10^{-4}, 10^{-3}, 0.01, 0.1, 1\}$ for the global scaling hyper-parameter $\Phi$, and the default values for hyper-parameters $a$ and $b$. PRS-CS-auto automatically estimates $\Phi$.
+We use the 10,000 individuals of the validation set as LD reference, except for PRS-CS which provides its own LD reference based on 503 individuals from the 1000 Genomes data. Note that \cite{ge2019polygenic} argued that the sample size of the LD reference has little impact on the performance of PRS-CS.
 
 [TODO: DESCRIBE SBayesR]
 
@@ -534,6 +534,15 @@ Assuming the same model for genetic effects genome-wide could result in model mi
 Moreover, since the inverse of a block-diagonal matrix is formed from the inverse of each block, it should be safe to run LDpred2 for each chromosome and then combine the results. 
 To choose the best LDpred2 model, one can choose the best model according to their preferred criterion (e.g. max AUC). 
 Here, we use the Z-Score from the regression of the phenotype by the PRS since we have found it more robust than using the AUC.
+
+\subsection*{Providing an LD reference}\label{sec:ld-ref}
+
+We provide an LD reference for European ancestry to be used by researchers who do not have access to a large dataset to be used as LD reference.
+We use the 362,320 UKBB individuals as used here, with some further quality control based on allele frequencies.
+Indeed, some large allele frequency mismatches have been reported recently in the UKBB when comparing to other datasets, which are apparently due to mismappings \cite[]{kunert2020allele}.
+Using 503 European individuals from the 1000 Genomes (1000G) data, we remove variants with allele frequency differences between UKBB and 1000G at $p<10^{-5}$ (Figure \ref{fig:af-outliers}).
+We also remove variants with minor allele frequencies less than 1\% in the 1000G or less than 0.5\% in the UKBB.
+1,054,330 variants remain, which we use to compute the LD reference provided.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
