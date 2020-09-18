@@ -76,7 +76,10 @@
 
 \begin{figure}[htb]
 	\centerline{\includegraphics[width=0.85\textwidth]{AUC-auto}}
-	\caption{}
+	\caption{Both ``grid'' and ``auto'' variants are compared in real data applications for LDpred2, lassosum, PRS-CS and SBayesR. Note that SBayesR is such an ``auto'' model, but does not have any ``grid'' counterpart.
+	Bars present AUC values on the test set of UKBB (mean and 95\% CI from 10,000 bootstrap samples).
+	%See corresponding values in table S2.
+	}
 	\label{fig:AUC-auto}
 \end{figure}
 
@@ -90,13 +93,19 @@
 
 \begin{figure}[htb]
 	\centerline{\includegraphics[width=0.85\textwidth]{AUC-simu2-ldpred2}}
-	\caption{}
+	\caption{LDpred2 models, run either per chromosome or genome-wide, are compared when varying GWAS sample size in scenario ``all\_40\_3000''.  
+	Bars present the mean and 95\% CI of 10,000 non-parametric bootstrap replicates of the mean AUC of 10 simulations for each scenario. 
+	%See corresponding values in table S1.
+	}
 	\label{fig:AUC-simu2-ldpred2}
 \end{figure}
 
 \begin{figure}[htb]
 	\centerline{\includegraphics[width=0.85\textwidth]{AUC-real-ldpred2}}
-	\caption{}
+	\caption{LDpred2 models, run either per chromosome or genome-wide, are compared in real data applications.
+	Bars present AUC values on the test set of UKBB (mean and 95\% CI from 10,000 bootstrap samples).
+	%See corresponding values in table S2.
+	}
 	\label{fig:AUC-real-ldpred2}
 \end{figure}
 
@@ -110,13 +119,13 @@
 
 \begin{figure}[htb]
 	\centerline{\includegraphics[width=0.85\textwidth]{table_h2}}
-	\caption{}
+	\caption{[TODO: SHOULD BE A TABLE. ADD CAPTION IF KEPT]}
 	\label{fig:TOCHANGE}
 \end{figure}
 
 \begin{figure}[htb]
 	\centerline{\includegraphics[width=0.85\textwidth]{CAD-grid}}
-	\caption{}
+	\caption{[TODO: ADD CAPTION IF KEPT. Results of LDpred2-grid-gwide for CAD.]}
 	\label{fig:CAD-grid}
 \end{figure}
 
@@ -129,7 +138,7 @@
 \begin{subfigure}[b]{\textwidth}
 	\centerline{\includegraphics[width=0.8\textwidth]{CAD-auto2}}
 \end{subfigure}
-\caption{}
+\caption{[TODO: ADD CAPTION IF KEPT. Paths of LDpred2-auto-gwide parameters for CAD, for two different starting values for p.]}
 \label{fig:CAD-auto}
 \end{figure}
 
@@ -143,13 +152,13 @@
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=0.7\textwidth]{sd-approx-simu}}
-	\caption{In simulations, standard deviations derived from summary statistics based on equation \eqref{eq:approx-sd} versus the standard deviations of genotypes of individuals in the validation set.}
+	\caption{In simulations, standard deviations derived from summary statistics based on equation (3) versus the standard deviations of genotypes of individuals in the validation set.}
 	\label{fig:sd-approx-simu}
 \end{figure}
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=0.9\textwidth]{sd-approx-BRCA}}
-	\caption{Standard deviations derived from summary statistics of breast cancer based on equation \eqref{eq:approx-sd} versus the standard deviations of genotypes of individuals in the validation set. Coloring shows the quality control applied in this paper.}
+	\caption{Standard deviations derived from summary statistics of breast cancer based on equation (3) versus the standard deviations of genotypes of individuals in the validation set. Coloring shows the quality control applied in this paper.}
 	\label{fig:sd-approx-brca}
 \end{figure}
 
@@ -159,7 +168,7 @@
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=0.9\textwidth]{af-outliers}}
-	\caption{}
+	\caption{Allele frequencies for HapMap3 variants in the 1000 Genomes and in UK Biobank. Variants are removed when the difference between these two frequencies is very significant ($p<10^{-5}$). Variants kept are used to provide an LD reference based on the UK Biobank data.}
 	\label{fig:af-outliers}
 \end{figure}
 
