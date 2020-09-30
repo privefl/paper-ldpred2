@@ -2,10 +2,7 @@ library(bigsnpr)
 ukb <- snp_attach("data/UKBB_imp_HM3.rds")
 G <- ukb$genotypes
 
-set.seed(1)
-ind.val <- sort(sample(nrow(G), 10e3))
-ind.gwas <- sort(sample(setdiff(rows_along(G), ind.val), 300e3))
-ind.test <- setdiff(rows_along(G), c(ind.gwas, ind.val))
+load("data/ind_gwas_val_test.RData")
 
 sd <- readRDS("data/sd.rds")
 

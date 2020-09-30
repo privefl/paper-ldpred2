@@ -3,10 +3,7 @@ ukb <- snp_attach("data/UKBB_imp_HM3.rds")
 G <- ukb$genotypes
 ukb$map$chromosome <- as.integer(ukb$map$chromosome)
 
-set.seed(1)
-ind.val <- sort(sample(nrow(G), 10e3))
-ind.test <- setdiff(rows_along(G), ind.val)
-
+load("data/ind_val_test.RData")
 
 library(dplyr)
 files <- tibble(basename = list.files("data/sumstats"),

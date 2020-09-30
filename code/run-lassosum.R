@@ -2,10 +2,7 @@ library(bigsnpr)
 ukb <- snp_attach("data/UKBB_imp_HM3.rds")
 G <- ukb$genotypes
 
-set.seed(1)
-ind.val <- sort(sample(nrow(G), 10e3))
-ind.test <- setdiff(rows_along(G), ind.val)
-
+load("data/ind_val_test.RData")
 
 library(dplyr)
 files <- tibble(basename = list.files("data/sumstats"),
@@ -26,19 +23,22 @@ rsid <- bigreadr::fread2("data/UKBB_imp_HM3_val.bim")[[2]]
 library(future.batchtools)
 NCORES <- 16
 plan(batchtools_slurm(resources = list(
-  t = "4:00:00", c = NCORES, mem = "128g",
+  t = "12:00:00", c = NCORES, mem = "128g",
   name = basename(rstudioapi::getSourceEditorContext()$path))))
 
 furrr::future_pmap(files_sub, function(basename, res_file) {
 
+  # basename <- "T1D.rds"
   y <- readRDS(file.path("data/pheno", basename))
   sumstats <- readRDS(file.path("data/sumstats", basename))
+  t <- with(sumstats, beta / beta_se)
+  n <- sumstats$n_eff
 
   library(lassosum)
   doParallel::registerDoParallel(cl <- parallel::makeCluster(NCORES))
   system.time(
     out <- lassosum.pipeline(
-      cor = with(sumstats, beta / beta_se / sqrt(n_eff)),
+      cor = t / sqrt(n - 2 + t^2),
       snp = rsid[sumstats$`_NUM_ID_`],
       A1 = sumstats$a1,
       A2 = sumstats$a0,
@@ -49,6 +49,7 @@ furrr::future_pmap(files_sub, function(basename, res_file) {
       destandardize = TRUE
     )
   ) # 25 min
+  pseudo_out <- pseudovalidate(out, cluster = cl)
   parallel::stopCluster(cl)
 
   auc.val <- apply(-do.call("cbind", out$pgs), 2, AUC_no_NA, target = y[ind.val])
@@ -57,6 +58,9 @@ furrr::future_pmap(files_sub, function(basename, res_file) {
   ind <- which(beta_lassosum != 0)
   pred <- big_prodVec(G, beta_lassosum[ind], ind.row = ind.test,
                       ind.col = sumstats$`_NUM_ID_`[ind])
+  ind <- which(pseudo_out$best.beta != 0)
+  pred_auto <- big_prodVec(G, pseudo_out$best.beta[ind], ind.row = ind.test,
+                           ind.col = sumstats$`_NUM_ID_`[ind])
 
-  saveRDS(-pred, res_file)
+  saveRDS(list(lassosum = -pred, lassosum_auto = -pred_auto), res_file)
 })

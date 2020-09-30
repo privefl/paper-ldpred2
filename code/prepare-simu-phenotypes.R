@@ -51,3 +51,26 @@ purrr::pwalk(params2, function(h2, M, K, iter) {
     saveRDS(simu$pheno, pheno_file)
   }
 })
+
+
+#### In both ####
+
+h2 <- 0.4
+M_HLA <- 300
+M_all <- 10e3
+K <- 0.15
+
+for (iter in 1:10) {
+
+  pheno_file <- sprintf("data/pheno-simu/both_%d_%d_%d.rds",
+                        100 * h2, 100 * K, iter)
+
+  if (!file.exists(pheno_file)) {
+    print(pheno_file)
+    simu1 <- snp_simuPheno(G, h2, M_HLA, ind.possible = ind.HLA)
+    simu2 <- snp_simuPheno(G, h2, M_all, ncores = NCORES)
+    simu_liab <- (simu1$pheno + simu2$pheno) / sqrt(2)
+    simu_pheno <- (simu_liab > qnorm(K, lower.tail = FALSE)) + 0L
+    saveRDS(simu_pheno, pheno_file)
+  }
+}

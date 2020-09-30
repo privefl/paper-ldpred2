@@ -4,7 +4,7 @@ G <- ukb$genotypes
 CHR <- as.integer(ukb$map$chromosome)
 POS <- ukb$map$physical.pos
 
-set.seed(1); ind.val <- sort(sample(nrow(G), 10e3))
+load("data/ind_val_test.RData")
 
 (NCORES <- as.integer(Sys.getenv("SLURM_JOB_CPUS_PER_NODE")) - 1L)
 POS2 <- snp_asGeneticPos(CHR, POS, dir = "tmp-data", ncores = NCORES)
@@ -49,3 +49,6 @@ for (chr in 1:22) {
 #  788.966    6.565   70.550
 #  861.304    6.443   72.679
 # -> 2.2H in total
+
+sum(file.size(paste0("data/corr/chr", 1:22, ".rds"))) / 1024^3
+# -> 9.5 GB total

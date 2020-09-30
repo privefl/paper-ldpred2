@@ -4,15 +4,26 @@ library(bigsnpr)
 ukb <- snp_attach("data/UKBB_imp_HM3.rds")
 G <- ukb$genotypes
 
-set.seed(1)
-ind.val <- sort(sample(nrow(G), 10e3))
-ind.gwas <- sort(sample(setdiff(rows_along(G), ind.val), 300e3))
-ind.test <- setdiff(rows_along(G), c(ind.gwas, ind.val))
+load("data/ind_gwas_val_test.RData")
 
 library(dplyr)
-files <- tibble(basename = list.files("data/pheno-simu"),
-                res_file = file.path("results/simu-ldpred1", basename))
-head(files)
+files <- tibble(
+  basename = list.files("data/sumstats-simu"),
+  chr = as.integer(sub(".*_chr([0-9]+).*\\.rds$", "\\1", basename)),
+  N = sub(".*_chr[0-9]+(.*)\\.rds$", "\\1", basename),
+  pheno_file = file.path("data/pheno-simu", sub("_chr[0-9]+.*(\\.rds)$", "\\1", basename)),
+  gwas_file = file.path("data/sumstats-simu", basename),
+  res_file = file.path("results/simu-ldpred1", sub("_chr[0-9]+", "", basename))
+) %>%
+  mutate(N = ifelse(N == "", 300000L, as.integer(sub("_", "", N)))) %>%
+  group_by(pheno_file, N, res_file) %>%
+  arrange(chr) %>%
+  summarize(gwas_files = list(c(gwas_file))) %>%
+  print()
+# files <- tibble(basename = list.files("data/pheno-simu"),
+#                 res_file = file.path("results/simu-ldpred1", basename))
+dim(files)
+table(files$N)
 bigassertr::assert_dir("results/simu-ldpred1")
 
 files_sub <- files %>%
@@ -24,23 +35,27 @@ files_sub <- files %>%
 
 library(future.batchtools)
 plan(batchtools_slurm(resources = list(
-  t = "60:00:00", c = "4", mem = "32g",
+  t = "3-00:00", c = "4", mem = "32g",
   name = basename(rstudioapi::getSourceEditorContext()$path))))
 
-furrr::future_pmap(files_sub, function(basename, res_file) {
+furrr::future_pmap(files_sub, function(pheno_file, N, res_file, gwas_files) {
 
-  y <- readRDS(file.path("data/pheno-simu", basename))
-  gwas <- do.call("rbind", lapply(1:22, function(chr) {
-    readRDS(file.path("data/sumstats-simu",
-                      sub("\\.rds$", paste0("_chr", chr, ".rds"), basename)))
-  }))
+  # num <- 1
+  # pheno_file <- files_sub$pheno_file[num]
+  # N <- files_sub$N[num]
+  # res_file <- files_sub$res_file[num]
+  # gwas_files <- files_sub$gwas_files[[num]]
+
+  y <- readRDS(pheno_file)
+  gwas <- do.call("rbind", lapply(gwas_files, readRDS))
 
   tmp <- tempfile(tmpdir = "tmp-data")
   file_sumstats <- paste0(tmp, ".txt")
   cbind(ukb$map, beta = gwas$estim, pval = predict(gwas, log10 = FALSE)) %>%
-    bigreadr::fwrite2(file_sumstats, sep = "\t")
-  # readLines(file_sumstats, n = 5)
-  (Neff <- round(4 / (1 / sum(y[ind.gwas] == 0) + 1 / sum(y[ind.gwas] == 1))))
+    na.omit() %>%
+    bigreadr::fwrite2(file_sumstats, sep = "\t") %>%
+    readLines(n = 5)
+  (Neff <- round(4 / (1 / sum(y[ind.gwas] == 0) + 1 / sum(y[ind.gwas] == 1)) * N / 300e3))
 
   file_hdf5 <- paste0(tmp, ".hdf5")
   ldpred <- "ldpred/LDpred.py"

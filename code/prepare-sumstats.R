@@ -11,14 +11,25 @@ map <- transmute(ukb$map,
 
 bigassertr::assert_dir("data/sumstats")
 
-set.seed(1); ind.val <- sort(sample(nrow(G), 10e3))
+load("data/ind_val_test.RData")
 (NCORES <- as.integer(Sys.getenv("SLURM_JOB_CPUS_PER_NODE")) - 1L)
 sd <- runonce::save_run(
-  big_parallelize(G, function(X, ind, ind.val) {
-    bigstatsr::big_scale()(X, ind.val, ind)$scale
-  }, p.combine = "c", ncores = NCORES, ind.val = ind.val),
+  sqrt(big_colstats(G, ind.val, ncores = NCORES)$var),
   file = "data/sd.rds"
 )
+
+SUMMARY <- function(info_snp) {
+  chi2 <- with(info_snp, (beta / beta_se)^2)
+  print(round(mean(chi2, na.rm = TRUE), 2))
+  S <- rep(NA, ncol(G)); S[info_snp$`_NUM_ID_`] <- chi2
+  signif <- pchisq(S, df = 1, lower.tail = FALSE) < 5e-8
+  print(sum(signif, na.rm = TRUE))
+  ind.keep <- snp_clumping(
+    G, infos.chr = map$chr, infos.pos = map$pos, S = S,
+    ind.row = ind.val, thr.r2 = 0.01, size = 10e3, ncores = NCORES,
+    exclude = which(is.na(S) | !signif))
+  print(length(ind.keep))
+}
 
 #### Breast cancer (BRCA) ####
 
@@ -43,9 +54,10 @@ info_snp <- bigsnpr::snp_match(sumstats, map, strand_flip = FALSE)
 # 11,792,542 variants to be matched.
 # 1,188,767 variants have been matched; 0 were flipped and 0 were reversed.
 (info_snp <- tidyr::drop_na(as_tibble(info_snp)))
+SUMMARY(info_snp)
 
 sd_val <- sd[info_snp$`_NUM_ID_`]
-sd_ss <- with(info_snp, 1 / sqrt(n_eff / 4 * beta_se^2))
+sd_ss <- with(info_snp, 2 / sqrt(n_eff * beta_se^2))
 
 is_bad <-
   sd_ss < (0.5 * sd_val) | sd_ss > (sd_val + 0.1) | sd_ss < 0.1 | sd_val < 0.05
@@ -90,9 +102,10 @@ info_snp <- bigsnpr::snp_match(sumstats, map, strand_flip = FALSE)
 # 9,739,303 variants to be matched.
 # 1,182,239 variants have been matched; 0 were flipped and 576,124 were reversed.
 (info_snp <- tidyr::drop_na(as_tibble(info_snp)))
+SUMMARY(info_snp)
 
 sd_val <- sd[info_snp$`_NUM_ID_`]
-sd_ss <- with(info_snp, 1 / sqrt(n_eff / 4 * beta_se^2))
+sd_ss <- with(info_snp, 2 / sqrt(n_eff * beta_se^2))
 
 is_bad <-
   sd_ss < (0.5 * sd_val) | sd_ss > (sd_val + 0.1) | sd_ss < 0.1 | sd_val < 0.05
@@ -135,14 +148,15 @@ info_snp <- snp_match(sumstats2, map)
 # 4,187,590 variants to be matched.
 # 596,370 ambiguous SNPs have been removed.
 # 502,114 variants have been matched; 0 were flipped and 0 were reversed.
-info_snp <- bigsnpr::snp_match(sumstats2, map, strand_flip = FALSE)
+info_snp <- bigsnpr::snp_match(sumstats2, map, strand_flip = FALSE, match.min.prop = 0.4)
 # 4,187,590 variants to be matched.
 # 548,659 variants have been matched; 0 were flipped and 0 were reversed.
 (info_snp <- as_tibble(info_snp))
 table(info_snp$chr)
+SUMMARY(info_snp)
 
 sd_val <- sd[info_snp$`_NUM_ID_`]
-sd_ss <- with(info_snp, 1 / sqrt(n_eff / 4 * beta_se^2))
+sd_ss <- with(info_snp, 2 / sqrt(n_eff * beta_se^2))
 
 is_bad <-
   sd_ss < (0.5 * sd_val) | sd_ss > (sd_val + 0.1) | sd_ss < 0.1 | sd_val < 0.05
@@ -179,9 +193,10 @@ info_snp <- bigsnpr::snp_match(sumstats, map, strand_flip = FALSE)
 # 12,056,346 variants to be matched.
 # 1,191,209 variants have been matched; 0 were flipped and 580,358 were reversed.
 (info_snp <- as_tibble(info_snp))
+SUMMARY(info_snp)
 
 sd_val <- sd[info_snp$`_NUM_ID_`]
-sd_ss <- with(info_snp, 1 / sqrt(n_eff / 4 * beta_se^2))
+sd_ss <- with(info_snp, 2 / sqrt(n_eff * beta_se^2))
 
 is_bad <-
   sd_ss < (0.5 * sd_val) | sd_ss > (sd_val + 0.1) | sd_ss < 0.1 | sd_val < 0.05
@@ -220,9 +235,10 @@ info_snp <- snp_match(sumstats2, map)
 # 1,889,205 ambiguous SNPs have been removed.
 # 1,101,409 variants have been matched; 454 were flipped and 535,358 were reversed.
 (info_snp <- as_tibble(info_snp))
+SUMMARY(info_snp)
 
 sd_val <- sd[info_snp$`_NUM_ID_`]
-sd_ss <- with(info_snp, 1 / sqrt(n_eff / 4 * beta_se^2))
+sd_ss <- with(info_snp, 2 / sqrt(n_eff * beta_se^2))
 
 is_bad <-
   sd_ss < (0.5 * sd_val) | sd_ss > (sd_val + 0.1) | sd_ss < 0.1 | sd_val < 0.05
@@ -264,9 +280,10 @@ info_snp <- snp_match(sumstats, map, strand_flip = FALSE)
 # 8,511,960 variants to be matched.
 # 1,171,119 variants have been matched; 0 were flipped and 570,586 were reversed.
 (info_snp <- as_tibble(info_snp))
+SUMMARY(info_snp)
 
 sd_val <- sd[info_snp$`_NUM_ID_`]
-sd_ss <- with(info_snp, 1 / sqrt(n_eff / 4 * beta_se^2))
+sd_ss <- with(info_snp, 2 / sqrt(n_eff * beta_se^2))
 
 is_bad <-
   sd_ss < (0.5 * sd_val) | sd_ss > (sd_val + 0.1) | sd_ss < 0.1 | sd_val < 0.05
@@ -302,9 +319,10 @@ info_snp <- snp_match(sumstats, map, strand_flip = FALSE)
 # 9,455,778 variants to be matched.
 # 1,112,939 variants have been matched; 0 were flipped and 771,046 were reversed.
 (info_snp <- as_tibble(info_snp))
+SUMMARY(info_snp)
 
 sd_val <- sd[info_snp$`_NUM_ID_`]
-sd_ss <- with(info_snp, 1 / sqrt(n_eff / 4 * beta_se^2))
+sd_ss <- with(info_snp, 2 / sqrt(n_eff * beta_se^2))
 
 is_bad <-
   sd_ss < (0.5 * sd_val) | sd_ss > (sd_val + 0.1) | sd_ss < 0.1 | sd_val < 0.05
@@ -339,9 +357,10 @@ info_snp <- snp_match(sumstats, map)
 # 0 ambiguous SNPs have been removed.
 # 983,838 variants have been matched; 0 were flipped and 0 were reversed.
 (info_snp <- as_tibble(info_snp))
+SUMMARY(info_snp)
 
 sd_val <- sd[info_snp$`_NUM_ID_`]
-sd_ss <- with(info_snp, 1 / sqrt(n_eff / 4 * beta_se^2))
+sd_ss <- with(info_snp, 2 / sqrt(n_eff * beta_se^2))
 
 is_bad <-
   sd_ss < (0.5 * sd_val) | sd_ss > (sd_val + 0.1) | sd_ss < 0.1 | sd_val < 0.05

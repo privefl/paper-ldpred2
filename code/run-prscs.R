@@ -11,7 +11,7 @@ library(dplyr)
 files <- tidyr::expand_grid(
   basename = list.files("data/sumstats"),
   chr = 1:22,
-  phi = 10^-(6:0)
+  phi = c(10^-(6:0), NA)
 ) %>%
   mutate(
     res_file = sprintf("results/prscs/%s_pst_eff_a1_b0.5_phi%.e_chr%d.txt",
@@ -61,7 +61,7 @@ furrr::future_pmap(files_sub, function(chr, phi, res_file, gwas_file) {
     " --bim_prefix=data/UKBB_imp_HM3_val",
     " --sst_file={tmp}",
     " --n_gwas={round(median(sumstats$n_eff))}",
-    " --phi={phi}",
+    if (is.na(phi)) "" else " --phi={phi}",
     " --chrom={chr}",
     " --out_dir={sub('_pst.+$', '', res_file)}"
   ))

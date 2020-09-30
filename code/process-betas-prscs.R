@@ -2,16 +2,14 @@ library(bigsnpr)
 ukb <- snp_attach("data/UKBB_imp_HM3.rds")
 G <- ukb$genotypes
 
-set.seed(1)
-ind.val <- sort(sample(nrow(G), 10e3))
-ind.test <- setdiff(rows_along(G), ind.val)
+load("data/ind_val_test.RData")
 
-library(tidyverse)
+library(dplyr)
 beta_prscs <-
   tibble(res_file = list.files("results/prscs", "\\.txt$", full.names = TRUE)) %>%
   mutate(Trait = sub("(.+/)([[:alnum:]]+)(.+_chr[0-9]+\\.txt)$", "\\2", res_file),
          chr = as.integer(sub("(.+_chr)([0-9]+)(\\.txt)$", "\\2", res_file)),
-         phi = as.double(sub("(.+_phi)(.+)(_chr[0-9]+\\.txt)$", "\\2", res_file))) %>%
+         phi = sub("(.+_phi)(.+)(_chr[0-9]+\\.txt)$", "\\2", res_file)) %>%
   group_by(Trait, phi) %>%
   arrange(chr) %>%
   summarize(beta = list(bigreadr::fread2(res_file))) %>%
@@ -24,13 +22,15 @@ for (k in cols_along(betas)) {
 }
 
 (NCORES <- as.integer(Sys.getenv("SLURM_JOB_CPUS_PER_NODE")) - 1L)
-bigparallelr::set_blas_ncores(NCORES)
-pred <- big_prodMat(G, betas)
+# bigparallelr::set_blas_ncores(NCORES)
+# pred <- big_prodMat(G, betas)
+pred <- big_parallelize(G, function(X, ind, betas) {
+  bigstatsr::big_prodMat(X, betas[ind, ], ind.col = ind)
+}, p.combine = plus, ncores = NCORES, betas = betas)
 
 beta_prscs$pred <- as.list(as.data.frame(pred))
-beta_prscs$pheno <- map(beta_prscs$Trait, ~ {
-  readRDS(paste0("data/pheno/", ., ".rds"))
-})
+beta_prscs$pheno <-
+  lapply(paste0("data/pheno/", beta_prscs$Trait, ".rds"), readRDS)
 
 AUC_no_NA <- function(pred, target) {
   is_not_na <- which(!is.na(target))
@@ -43,17 +43,23 @@ AUCBoot_no_NA <- function(pred, target) {
 
 library(future)
 plan(multisession, workers = NCORES)
+
 res_prscs <- beta_prscs %>%
-  mutate(auc_val = map2_dbl(pred, pheno, ~ AUC_no_NA(-.x[ind.val], .y[ind.val]))) %>%
+  filter(phi != "auto") %>%
+  mutate(auc_val = furrr::future_map2_dbl(
+    pred, pheno, ~ AUC_no_NA(-.x[ind.val], .y[ind.val]))) %>%
   group_by(Trait) %>%
   arrange(desc(auc_val)) %>%
   slice(1) %>%
   ungroup() %>%
-  transmute(Trait,
-            Method = "PRS-CS",
-            AUCBoot = furrr::future_map2(pred, pheno, ~ {
-              AUCBoot_no_NA(-.x[ind.test], .y[ind.test])
-            })) %>%
+  transmute(Trait, Method = "PRS-CS", AUCBoot = furrr::future_map2(
+    pred, pheno, ~ AUCBoot_no_NA(-.x[ind.test], .y[ind.test]))) %>%
   print()
 
-saveRDS(res_prscs, "results/all-prscs.rds")
+res_prscs_auto <- beta_prscs %>%
+  filter(phi == "auto") %>%
+  transmute(Trait, Method = "PRS-CS-auto", AUCBoot = furrr::future_map2(
+    pred, pheno, ~ AUCBoot_no_NA(-.x[ind.test], .y[ind.test]))) %>%
+  print()
+
+saveRDS(dplyr::bind_rows(res_prscs, res_prscs_auto), "results/all-prscs.rds")

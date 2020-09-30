@@ -67,5 +67,14 @@ ukb$map <- dplyr::mutate(ukb$map, chromosome = as.integer(chromosome),
 ukb$fam <- snp_fake(n = nrow(G), m = 1)$fam
 ukb$fam$sample.ID <- sample$ID_2[ind.indiv[sub2]]
 
-set.seed(1); ind.val <- sort(sample(nrow(G), 10e3))
+RNGversion("3.5.1"); set.seed(1)
+ind.val <- sort(sample(nrow(G), 10e3))
+# for simulations
+ind.gwas <- sort(sample(setdiff(rows_along(G), ind.val), 300e3))
+ind.test <- setdiff(rows_along(G), c(ind.gwas, ind.val))
+save(ind.val, ind.gwas, ind.test, file = "data/ind_gwas_val_test.RData")
+# for real applications
+ind.test <- setdiff(rows_along(G), ind.val)
+save(ind.val, ind.test, file = "data/ind_val_test.RData")
+
 snp_writeBed(ukb, bedfile = "data/UKBB_imp_HM3_val.bed", ind.row = ind.val)
