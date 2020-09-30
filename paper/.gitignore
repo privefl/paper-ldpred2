@@ -4,6 +4,7 @@
 *.log
 *.out
 paper-ldpred2.pdf
+paper-ldpred2-supp.pdf
 *.synctex.gz
 *.aux
 *.tex.bak
