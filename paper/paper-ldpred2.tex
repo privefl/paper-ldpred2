@@ -265,10 +265,10 @@ LDpred2 also extends the original LDpred model in two ways.
 First, we provide a sparse option in LDpred2-grid which provides models that truly encourage sparsity, in contrast to LDpred1 which outputs very small non-zero effect sizes \cite[]{cecile2019polygenic}.
 In practice, the sparse version of LDpred2 can drastically reduce the number of variants used in the PGS without impacting its predictive performance, as opposed to discarding the smallest effects after having run LDpred (as tested in \cite{bolli2019software}).
 The second extension is LDpred2-auto, which automatically estimates values for hyper-parameters $p$ and $h^2$, which therefore does not require any validation set to tune hyper-parameters from. 
-LDpred2-auto is an attractive option in many applications, especially since we now also provide an LD reference that can be used directly. 
+LDpred2-auto is an attractive option in many applications, especially since we now also provide an LD reference that can be used directly.
 LDpred2-auto almost always performs equally well as LDpred2-grid in simulations as well as in real data applications.
 
-However, LDpred2-auto requires that some quality control is performed on summary statistics (see Methods section ``Quality control of summary statistics''). 
+However, LDpred2-auto requires that some quality control is performed on summary statistics (see Methods section ``Quality control of summary statistics'').
 This quality control aims at ensuring that effects are transferable from the external GWAS summary statistics to the data where PGS are computed.
 Note that this quality control is also beneficial for other methods such as lassosum (data not shown).
 Even when this quality control is performed, LDpred2-auto can slightly underperform in some situations, e.g. for CAD and Asthma here (Figure \ref{fig:AUC-all}).
