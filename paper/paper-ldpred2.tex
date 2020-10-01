@@ -90,8 +90,8 @@ LDpred is a popular method for deriving polygenic scores based on summary statis
 However, LDpred has limitations that may reduce its predictive performance.
 Here we present LDpred2, a new version of LDpred that addresses these issues.
 We also provide two new options in LDpred2: a ``sparse'' option that can learn effects that are exactly 0, and an ``auto'' option that directly learns the two LDpred parameters from data.
-We benchmark predictive performance of LDpred2 against the previous version on simulated and real data, demonstrating substantial improvements in robustness, and now providing much more accurate polygenic scores compared to LDpred1.
-We then show that LDpred2 also outperforms other polygenic score methods recently developed, such as lassosum, PRS-CS and SBayesR.
+We benchmark predictive performance of LDpred2 against the previous version on simulated and real data, demonstrating substantial improvements in robustness and predictive accuracy compared to LDpred1.
+We then show that LDpred2 also outperforms other polygenic score methods recently developed, with a mean AUC over the 8 real traits analyzed here of 65.1\%, compared to 63.8\% for lassosum, 62.9\% for PRS-CS and 61.5\% for SBayesR.
 Note that, in contrast to what was recommended in the first version of this paper, we now recommend to run LDpred2 genome-wide instead of per chromosome.
 LDpred2 is implemented in R package bigsnpr.
 }
@@ -119,9 +119,9 @@ This issue has led to the removal of such regions from analyses  \cite[]{marquez
 Here, we present LDpred2, a new version of LDpred that addresses these issues while markedly improving its computational efficiency, allowing exploring a larger grid of parameters in the same computational time as LDpred1.
 We provide this faster and more robust implementation of LDpred in R package bigsnpr \cite[]{prive2017efficient}.
 We also provide two new options in LDpred2. First, we provide a ``sparse'' option, where LDpred2 truly fits some effects to zero, therefore providing a sparse vector of effects. Second, we also provide an ``auto'' option, where LDpred2 automatically estimates the sparsity $p$ and the SNP heritability $h^2$, and therefore does not require validation data to tune hyper-parameters.
-We show that LDpred2 provides higher predictive performance than LDpred1 (LDpred v1.0.0), especially when there are causal variants in long-range LD regions, when the proportion of causal variants is small, and when sample size is large.
+We show that LDpred2 provides higher predictive performance than LDpred1 (LDpred v1.0.0), especially when there are causal variants in long-range LD regions, when the proportion of causal variants is small, and when GWAS sample size is large.
 We also show that the new sparse option performs equally well as the non-sparse version, enabling LDpred2 to provide sparse effects without losing prediction accuracy.
-Moreover, LDpred2-auto, which does not require any validation set, performs almost as well as LDpred2-grid (the main LDpred2 model which tunes hyper-parameters from a grid in a validation set), provided some quality control is performed on the summary statistics.
+Moreover, LDpred2-auto, which does not require any validation set, performs almost as well as the main LDpred2 model that tunes hyper-parameters from a grid in a validation set, provided some quality control is performed on the summary statistics.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -134,11 +134,11 @@ Here we present LDpred2, a new version of LDpred \cite[]{vilhjalmsson2015modelin
 LDpred2 has 3 options: 1) LDpred2-inf, which provides an analytical solution under the infinitesimal model of LDpred1; 2) LDpred2-grid (or simply LDpred2) that is the main LDpred model, where a grid of values for hyper-parameters $p$ (the proportion of causal variants), $h^2$ (the SNP heritability), and possibly the sparsity option (as a third hyper-parameter) are tuned using a validation set; 3) LDpred2-auto, which automatically estimates $p$ and $h^2$ from data and therefore is free of hyper-parameters to tune.
 Note that the sparse option in LDpred2-grid slightly modifies the Gibbs sampler in LDpred2 to be able to fit effects that are exactly 0.
 For users who do not particularly care about sparsity, they can still tune this parameter in LDpred2-grid to explore a larger parameter space. 
-For this paper, to show the effect of this sparse option on predictive performance, we deliberately separate the LDpred2-grid method in two ``different'' methods that we call LDpred2-grid-nosp (sparse option always disabled) and LDpred2-grid-sp (sparse option always enabled) in the results.
+For this paper, in order to show the effect of this sparse option on predictive performance, we deliberately separate the LDpred2-grid method in two ``different'' methods that we call LDpred2-grid-nosp (sparse option always disabled) and LDpred2-grid-sp (sparse option always enabled) in the results.
 As a recall, LDpred v1 has two options: LDpred1-inf, and LDpred1-grid where only $p$ is tuned while $h^2$ is estimated from constrained LD score regression \cite[]{bulik2015ld}.
 
 We make use of the UK Biobank data to compare the two versions of LDpred using several simulation scenarios to understand the expected impact of using the new version of LDpred. We also compare these two versions of LDpred using eight case-control phenotypes of major interest and for which there are published external summary statistics available and a substantial number of cases in the UK Biobank data. 
-We also compare running LDpred2 (including choosing optimal hyper-paramaters) per chromosome (``perchr'') or genome-wide (``gwide'').
+We also compare running LDpred2 per chromosome (``perchr'', including choosing optimal hyper-paramaters) or genome-wide (``gwide'').
 Finally, we compare LDpred2 to several other methods: Clumping and Thresholding (C+T), Stacked C+T (SCT), lassosum, PRS-CS and SBayesR \cite[]{prive2019making,mak2017polygenic,ge2019polygenic,lloyd2019improved}.
 Area Under the ROC Curve (AUC) values are reported.
 
@@ -153,15 +153,14 @@ When testing a grid of hyper-parameters, LDpred2 performs substantially better t
 For example, in simulations with 300 causal variants, a mean AUC of 73.6\% is obtained with LDpred1 while a value of 81.7\% is obtained with LDpred2.
 In these scenarios, all non-infinitesimal models of LDpred2 perform equally well.
 As expected, LDpred1 performs poorly in HLA scenarios, i.e.\ when causal variants are located in a long-range LD region. 
-In contrast, all LDpred2 models perform well in these two HLA scenarios, but LDpred2-auto performs slightly worse than other LDpred2 models in these extreme scenarios.
+In contrast, all LDpred2 models perform well in these two HLA scenarios, but LDpred2-auto performs slightly worse than the other LDpred2 models in these extreme scenarios.
 
 %% FIGURE 1 HERE
 \begin{figure}[htb]
 \centerline{\includegraphics[width=0.9\textwidth]{AUC-simu}}
 \caption{Two variants of LDpred1 are compared with four variants of LDpred2 (run per chromosome) in the seven simulation scenarios summarized in table \ref{tab:simus}. Briefly, the first part of the scenario name corresponds to the location of causal variants, the second part is the heritability (in \%), the third part is the number of causal variants, and the prevalence is always 15\%.
 Bars present the mean and 95\% CI of 10,000 non-parametric bootstrap replicates of the mean AUC of 10 simulations for each scenario. 
-[TODO: MAKE SURE ABOUT NAMING OF BOOTSTRAP TECHNIQUE + ADD CORRESPONDING TABLES IN SUPPMAT WHEN CODE OUT]
-%See corresponding values in table S1.
+Corresponding values are reported in table S1.
 }
 \label{fig:AUC-simu}
 \end{figure}
@@ -169,8 +168,8 @@ Bars present the mean and 95\% CI of 10,000 non-parametric bootstrap replicates 
 %%%%
 
 Figure \ref{fig:AUC-simu2-grid} presents the simulation results comparing LDpred1-grid and LDpred2-grid when varying the GWAS sample size from 10,000 to 300,000 in the simulation scenario with 3000 causal variants anywhere on the genome (``all\_40\_3000''). 
-We can see that LDpred1-grid performs equally well as LDpred2-grid (when LDpred2 is run genome-wide) for the smallest GWAS sample sizes. 
-Yet, LDpred1-grid starts providing lower predictive performance than LDpred2-grid when sample size becomes larger. 
+LDpred1-grid performs equally well as LDpred2-grid (when LDpred2 is run genome-wide) for the smallest GWAS sample sizes. 
+Yet, LDpred1-grid starts providing lower predictive performance than LDpred2-grid when GWAS sample size becomes larger. 
 For example, in the scenario with a sample size of 120,000, LDpred1 provides a mean AUC of 70.7\% while LDpred2 provides a mean AUC of 74.6\%.
 Moreover, LDpred1 even performs slightly worse with a mean AUC of 70.4\% when the sample size is increased to 300,000.
 In contrast, the performance of LDpred2 continues to increase steadily to 79.1\% towards the maximum achievable AUC of 82.5\% for this scenario with a heritability of 40\% and a prevalence of 15\% \cite[]{wray2010genetic}.
@@ -180,7 +179,7 @@ In contrast, the performance of LDpred2 continues to increase steadily to 79.1\%
 	\centerline{\includegraphics[width=0.8\textwidth]{AUC-simu2-grid}}
 	\caption{LDpred1-grid is compared to LDpred2-grid when varying GWAS sample size in scenario ``all\_40\_3000''.  
 	Bars present the mean and 95\% CI of 10,000 non-parametric bootstrap replicates of the mean AUC of 10 simulations for each scenario. 
-	%See corresponding values in table S1.
+	Corresponding values are reported in table S2.
 	}
 	\label{fig:AUC-simu2-grid}
 \end{figure}
@@ -192,15 +191,14 @@ Eight case-control phenotypes are used, summarized in table \ref{tab:sumstats}.
 For BRCA, CAD, MDD, PRCA, T1D and T2D, LDpred2-inf and LDpred2-grid perform much better than LDpred1-inf and LDpred1-grid respectively.
 For example, for BRCA, AUC improves from 58.9\% with LDpred1-grid to 65.5\% with LDpred2-grid, and from 57.4\% to 78.4\% for T1D.
 For Asthma and RA, predictive performance of LDpred1 and LDpred2 are similar.
-As in simulations, the sparse version of LDpred2-grid performs as well as the non-sparse version. Sparsity of resulting effects ranges from 19.3\% for RA to 54.4\% for Asthma [TODO: ADD REF TO TABLE THAT SHOWS THE SPARSITY OF THE CORRESPONDING MODEL WHEN OUT -> SEE SCREENSHOT IN SUPPMAT FOR NOW]
+As in simulations, the sparse version of LDpred2-grid performs as well as the non-sparse version. Sparsity of resulting effects ranges from 19.3\% for RA to 54.4\% for Asthma (Table S5).
 
 %% FIGURE 3 HERE
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=0.9\textwidth]{AUC-real}}
 	\caption{Two variants of LDpred1 are compared with four variants of LDpred2 (run genome-wide) in the real data applications using published external summary statistics.
 	Bars present AUC values on the test set of UKBB (mean and 95\% CI from 10,000 bootstrap samples).
-	[TODO: MAKE SURE ABOUT NAMING OF BOOTSTRAP TECHNIQUE + ADD CORRESPONDING TABLES IN SUPPMAT WHEN CODE OUT]
-	%See corresponding values in table S2.
+	Corresponding values are reported in table S3.
 	}
 	\label{fig:AUC-real}
 \end{figure}
@@ -215,7 +213,7 @@ LDpred2 performs best for all phenotypes, lassosum performs relatively well for 
 	\centerline{\includegraphics[width=0.95\textwidth]{AUC-all}}
 	\caption{LDpred2 is compared with C+T, SCT, lassosum, PRS-CS and SBayesR in the real data applications using published external summary statistics.
 	Bars present AUC values on the test set of UKBB (mean and 95\% CI from 10,000 bootstrap samples).
-	%See corresponding values in table S2.
+	Corresponding values are reported in table S4.
 	}
 	\label{fig:AUC-all}
 \end{figure}
@@ -225,7 +223,7 @@ We remind readers that SBayesR is such an ``auto'' model, but does not have any 
 All ``grid'' models usually perform better than their ``auto'' counterpart. 
 LDpred2-auto performs similarly as LDpred2-grid, except for CAD (AUC of 61.8\% vs 63.6\%) and to a lesser extent for Asthma (AUC of 58.4\% vs 59.3\%). 
 Similarly, lassosum-auto performs similarly as lassosum, expect for MDD (AUC of 54.9\% vs 59.4\%). 
-Similarly, PRS-CS-auto also underperforms for MDD (53.9\% for PRS-CS-auto vs AUC of 57.5\% for PRS-CS).
+Similarly, PRS-CS-auto also underperforms for MDD (AUC of 53.9\% for PRS-CS-auto vs 57.5\% for PRS-CS).
 In contrast, SBayesR does not underperforms for MDD but severely underperforms for T1D and RA, as discussed in the previous paragraph.
 
 \subsection*{Running LDpred2 per chromosome or genome-wide?}
@@ -233,31 +231,26 @@ In contrast, SBayesR does not underperforms for MDD but severely underperforms f
 Most results show that it is beneficial to run LDpred2 genome-wide instead of per chromosome, contrary to was recommended in the first version of this paper.
 Figure \ref{fig:AUC-simu2-ldpred2} shows that it can be beneficial to run all LDpred2 models genome-wide rather than per chromosome, especially when GWAS sample size is small.
 For example, in the simulation scenario with the sample size of 20,000, switching running LDpred2 per chromosome to running it genome-wide improves AUC of LDpred2-inf from 57.2\% to 57.7\%, LDpred2-grid from 58.6\% to 59.6\%, and LDpred2-auto from 57.3\% to 59.3\%.
-We note that however that the simulation scenario used to produce results in figure \ref{fig:AUC-simu2-ldpred2} is assuming the same genome-wide disease architecture, i.e.\ 3000 causal variants located anywhere on the genome and whose effects are drawn from the same normal distribution.
+Note that the simulation scenario used to produce results in figure \ref{fig:AUC-simu2-ldpred2} is assuming the same genome-wide disease architecture, i.e.\ 3000 causal variants located anywhere on the genome and whose effects are drawn from the same normal distribution.
 However, figure \ref{fig:AUC-real-ldpred2} also shows that it can be beneficial to run all LDpred2 models genome-wide rather than per chromosome for real traits as well. 
-Indeed, except for LDpred2-inf applied to T1D, all other cases show similar or better performance for running all variants of LDpred2 genome-wide. 
+Indeed, except for LDpred2-inf applied to T1D, all other cases show similar or better performance when running LDpred2 genome-wide. 
 For example, running LDpred2-grid genome-wide rather than per chromosome is particularly beneficial for CAD (AUC of 63.6\% vs 61.5\%) and PRCA (AUC of 70.2\% vs 68.2\%).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Discussion}
 
-[TODO: ALSO TALK ABOUT LDPRED2 PARAMS AND POSSIBLY FUTURE WORK OF IMPROVING THEM VIA E.G. FUNCTIONAL ANNOTATIONS?]
-
-[TODO: TALK ABOUT THE WRONG H2 ESTIMATION FOR CAD IN DISCU? -> CF. TABLE + SOME FIGURES IN SUPPMAT]
-
 The previous version of LDpred has been widely used and has the potential to provide polygenic models with good predictive performance \cite[]{khera2018genome}. 
 Yet, it has instability issues that have been pointed out \cite[]{marquez2018modeling,lloyd2019improved} and likely contributed to discrepancies in reported predictive accuracy of LDpred \cite[]{choi2019prsice,ge2019polygenic,chun2020non}.
-We have therefore implemented a new version of LDpred, LDpred2, to address these issues and improve its computational efficiency.
+We have therefore implemented a new version of LDpred, LDpred2, to address these issues.
 We show that LDpred2 is more stable and provides higher predictive performance than LDpred1, particularly when handling long-range LD regions, less polygenic traits, and large GWAS sample sizes.
 We hypothesize that LDpred1 does not use a LD window size that is large enough to account for long-range LD such as in the HLA region.
 In LDpred2, we use a window size of 3 cM, which is larger than the default value used in LDpred1.
 This enables LDpred2 to work well even when causal variants are located in long-range LD regions.
-We argue against removing these regions as sometimes suggested in the literature \cite[]{marquez2018modeling,lloyd2019improved}. 
-Indeed, these regions, especially the HLA region, contain many variants associated with many traits, and are therefore very useful for prediction.
+We argue against removing these regions as sometimes suggested in the literature \cite[]{marquez2018modeling,lloyd2019improved} since these regions, especially the HLA region, contain many variants associated with many traits, and are therefore very useful for prediction.
 Other modifications, such as a better handling of numerical errors when working with exponentials (equation \eqref{eq:postp}), or a larger hyper-parameter search space, may also contribute to the improved robustness in LDpred2.
 
-In LDpred2, we expand the grid of hyper-parameters examined with now more values for $p$ (21 instead of 7 by default in LDpred1) and for $h^2$ (3 instead of 1).
+In LDpred2, we also expand the grid of hyper-parameters examined with now more values for $p$ (21 instead of 7 by default in LDpred1) and for $h^2$ (3 instead of 1).
 When testing the grid of hyper-parameters of $p$ and $h^2$, we also allow for testing an option to enable sparse models in LDpred2 (see below).
 Overall, we test a grid of 126 different values in LDpred2 instead of 7 in LDpred1.
 We also use a larger window size for computing correlations between variants (see above), yet LDpred2 is still as fast as LDpred1.
@@ -271,9 +264,20 @@ It takes 11 minutes to pre-compute the LD matrix for 10,000 individuals and 100,
 LDpred2 also extends the original LDpred model in two ways.
 First, we provide a sparse option in LDpred2-grid which provides models that truly encourage sparsity, in contrast to LDpred1 which outputs very small non-zero effect sizes \cite[]{cecile2019polygenic}.
 In practice, the sparse version of LDpred2 can drastically reduce the number of variants used in the PGS without impacting its predictive performance, as opposed to discarding the smallest effects after having run LDpred (as tested in \cite{bolli2019software}).
-The second extension is LDpred2-auto, which automatically estimates values for hyper-parameters $p$ and $h^2$, therefore which does not require a validation set to choose hyper-parameters, making it an attractive option in many applications. 
-LDpred2-auto almost always performs equally well as LDpred2-grid in simulations as well as in real data applications, provided that some quality control is performed on summary statistics (see Methods section ``Quality control of summary statistics'').
+The second extension is LDpred2-auto, which automatically estimates values for hyper-parameters $p$ and $h^2$, which therefore does not require any validation set to tune hyper-parameters from. 
+LDpred2-auto is an attractive option in many applications, especially since we now also provide an LD reference that can be used directly. 
+LDpred2-auto almost always performs equally well as LDpred2-grid in simulations as well as in real data applications.
+
+However, LDpred2-auto requires that some quality control is performed on summary statistics (see Methods section ``Quality control of summary statistics''). 
 This quality control aims at ensuring that effects are transferable from the external GWAS summary statistics to the data where PGS are computed.
+Note that this quality control is also beneficial for other methods such as lassosum (data not shown).
+Even when this quality control is performed, LDpred2-auto can slightly underperform in some situations, e.g. for CAD and Asthma here (Figure \ref{fig:AUC-all}).
+When looking more closely at the results for CAD, even though chains seemed to have converged (Figure S5), we can see that the heritability estimate from LDpred2-auto is off compared to the one from LD score regression (Table S5), and that its estimate of $p$ (\textasciitilde0.001) is off compared to the best performing $p$ in LDpred2-grid (\textasciitilde0.01 in figure S4).
+One possible explanation for this discrepancy is that the summary statistics we use for CAD come from a meta-analysis of 48 small studies, with some of them from non-European ancestries.
+Moreover, the summary statistics we use for Asthma come from a meta-analysis of 66 small multiancestry studies.
+This could break some of the assumptions used in LDpred2-auto and explain why LDpred2-auto underperforms for CAD and Asthma compared to LDpred2-grid.
+Future work is needed to study how to make best use of these multiancestry meta-analyses from many small studies in the context of genetic prediction.
+Future work is also needed to assess how relevant is the estimation of parameters from LDpred2-auto, and whether its estimates and its predictive performance could be improved by e.g. incorporating functional annotations.
 
 In conclusion, we have shown that LDpred2 provides a better, faster and more robust implementation of the LDpred model.
 When compared to recently derived methods that showed higher predictive performance than LDpred1, LDpred2 provides the highest predictive performance for all the real traits tested here.
@@ -303,7 +307,7 @@ We use the remaining 52,320 individuals as test set for evaluating models.
 We simulate binary phenotypes with a heritability of $h^2=0.4$ using a Liability Threshold Model (LTM) with a prevalence of 15\% \cite[]{falconer1965inheritance}. 
 We vary the number of causal variants (300, 3000, 30,000, or 300,000) to match a range of genetic architectures from low to high polygenicity.
 Causal variants are chosen randomly anywhere on the genome. 
-Liability scores are computed from a model with additive effects only: we compute the liability score of the $i$-th individual as \(y_i = \sum_{j\in S_\text{causal}} w_j \widetilde{G}_{i,j} + \epsilon_i,\) where $S_\text{causal}$ is the set of causal variants, $w_j$ are weights generated from a Gaussian distribution $N(0, h^2 / \vert S_\text{causal} \vert)$, $G_{i,j}$ is the allele count of individual $i$ for variant $j$, $\widetilde{G}_{i,j}$ corresponds to its standardized version (zero mean and unit variance), and $\epsilon_i$ follows a Gaussian distribution $N(0, 1 - h^2)$.
+Liability scores are computed from a model with additive effects only: we compute the liability score of the $i$-th individual as \(y_i = \sum_{j\in S_\text{causal}} w_j \widetilde{G}_{i,j} + \epsilon_i,\) where $S_\text{causal}$ is the set of causal variants, $w_j$ are weights generated from a Gaussian distribution $N(0, h^2 / \vert S_\text{causal} \vert)$, $G_{i,j}$ is the allele dosage of individual $i$ for variant $j$, $\widetilde{G}_{i,j}$ corresponds to its standardized version (zero mean and unit variance), and $\epsilon_i$ follows a Gaussian distribution $N(0, 1 - h^2)$.
 Both parts of the $y_i$'s are scaled such that the variance of the genetic liability is exactly $h^2$ and the variance of the total liability is exactly $1$. 
 Such simulation of phenotypes based on real genotypes is implemented in function \texttt{snp\_simuPheno} of R package bigsnpr.
 We also vary the sample size to compute GWAS summary statistics in the scenario with 3000 causal variants; in addition to a GWAS sample size of 300,000, we also use 10,000, 20,000, 50,000 and 120,000. 
@@ -312,6 +316,8 @@ Finally, we design a seventh simulation scenario as a mixture of previous scenar
 
 All simulation scenarios are summarized in table \ref{tab:simus}.
 Each simulation scenario is repeated 10 times and averages of the Area Under the ROC Curve (AUC) are reported. The 95\% confidence interval (CI) from 10,000 non-parametric bootstrap replicates of the mean AUC of the 10 simulations for each scenario is also reported. 
+In other words, we sample 10,000 bootstrap replicates of these 10 AUC values and compute their respective mean. 
+We then report the mean of these 10,000 values, along with their quantile at 2.5\% and at 97.5\% to act as the 95\% confidence interval (CI) for the mean AUC.
 
 \begin{table}[ht]
 	\centering
@@ -339,8 +345,6 @@ We use external published GWAS summary statistics listed in table \ref{tab:sumst
 We defined phenotypes as in \cite{prive2019making}. Some quality control is applied to summary statistics (see Method section ``Quality control of summary statistics'' below).
 For more details, please refer to our R code (Software and code availability section).
 
-[TODO: TALK ABOUT AUC + CI]
-
 %% TABLE 1 HERE
 \begin{table}[h]
 	\centering
@@ -363,12 +367,17 @@ For more details, please refer to our R code (Software and code availability sec
 
 In real data applications, we first compare all four LDpred2 models to the two LDpred1 models.
 Then, we compare LDpred2-inf, LDpred2-grid and LDpred2-auto to several other methods: Clumping and Thresholding (C+T), Stacked C+T (SCT), lassosum(-auto), PRS-CS(-auto) and SBayesR \cite[]{prive2019making,mak2017polygenic,ge2019polygenic,lloyd2019improved}.
-For C+T and SCT \cite[]{prive2019making}, we use the default large grid of hyper-parameters testing a threshold of clumping $r_c^2$ within \{0.01, 0.05, 0.1, 0.2, 0.5, 0.8, 0.95\}, a base size of clumping window within \{50, 100, 200, 500\} in Kbp where the actual window size is then computed as the base size divided by $r_c^2$, and a sequence of 50 thresholds on -log10(p-values) between 0.1 and the most significant p-value, equally spaced on a log scale.
+For C+T and SCT \cite[]{prive2019making}, we use the default large grid of hyper-parameters testing a threshold of clumping $r_c^2$ within \{0.01, 0.05, 0.1, 0.2, 0.5, 0.8, 0.95\}, a base size of clumping window within \{50, 100, 200, 500\} in Kb where the actual window size is then computed as the base size divided by $r_c^2$, and a sequence of 50 thresholds on -log10(p-values) between 0.1 and the most significant p-value, equally spaced on a log scale.
 For lassosum \cite[]{mak2017polygenic}, we use the default grid of hyper-parameters $s$ and $\lambda$. 
 We also alternatively choose the optimal hyper-parameters based on pseudo-validation (instead of choosing them based on performance in the validation set) and refer to this method as lassosum-auto.
 For PRS-CS \cite[]{ge2019polygenic}, we use the grid $\{10^{-6}, 10^{-5}, 10^{-4}, 10^{-3}, 0.01, 0.1, 1\}$ for the global scaling hyper-parameter $\Phi$, and the default values for hyper-parameters a (1) and b (0.5). PRS-CS-auto automatically estimates $\Phi$.
-Note that we use the 10,000 individuals of the validation set as LD reference for all methods, except for PRS-CS which provides its own LD reference based on 503 individuals from the 1000 Genomes data; \cite{ge2019polygenic} argued that the sample size of the LD reference has little impact on the performance of PRS-CS.
 Finally, for SBayesR \cite[]{lloyd2019improved}, shrunk LD matrices are built using option `\texttt{-{}-make-shrunk-ldm}' and SBayesR is run with parameters `\texttt{-{}-pi 0.95,0.02,0.02,0.01}' and `\texttt{-{}-gamma 0.0,0.01,0.1,1}', and a chain of length 10,000 with 2000 burn-in iterations.
+Note that we use the 10,000 individuals of the validation set as LD reference for all methods, except for PRS-CS which provides its own LD reference based on 503 individuals from the 1000 Genomes data; \cite{ge2019polygenic} argued that the sample size of the LD reference has little impact on the performance of PRS-CS.
+
+We use the Area Under the ROC Curve (AUC) to compare methods.
+We sample 10,000 bootstrap replicates of the individuals in the test set and compute the AUC for each of these. 
+We then report the mean of these 10,000 values, along with their quantile at 2.5\% and at 97.5\% to act as the 95\% confidence interval (CI) for the AUC.
+This is implemented in function \texttt{AUCBoot} of R package bigstatsr.
 
 
 \subsection*{From marginal effects to joint effects}
@@ -505,8 +514,8 @@ We also provide a sparse option for LDpred2-auto by running LDpred2-grid with on
 
 When running LDpred2-grid, we test a grid of hyper-parameters with $p$ from a sequence of 21 values from $10^{-5}$ to $1$ on a log-scale; $h^2$ within $\{0.7, 1, 1.4\} \cdot h^2_\text{LDSC}$, where $h^2_\text{LDSC}$ is the heritability estimate from the constrained LD score regression \cite{bulik2015ld}; and whether sparsity is enabled or not.
 In total, this grid is of size $21 \times 3 \times 2 = 126$.
-When running LDpred2-auto, we run it 30 times with $h^2_\text{LDSC}$ as initial value for $h^2$ and a sequence of 30 values from $10^{-4}$ to $0.9$ on a log-scale as initial values for $p$.
-Running many Gibbs chains aims at checking that models did not diverge (and hopefully converged).
+When running LDpred2-auto, we run it 30 times with $h^2_\text{LDSC}$ as initial value for $h^2$ and a sequence of 30 values from $10^{-4}$ to $0.9$ equally spaced on a log scale as initial values for $p$.
+Running many Gibbs chains aims at checking whether models did not diverge (and hopefully converged).
 As a criterion for non-divergence, we compute the standard deviations of the resulting predictors from the 30 models, keep only those within 3 median absolute deviations from their median, and average the remaining vectors of effects as final effect sizes for the ``auto'' version.
 
 
@@ -528,18 +537,18 @@ Note that, in the code, we use `\texttt{size = 3 / 1000}' since parameter \textt
 In this paper, we investigate if it would be beneficial to run LDpred2 per chromosome, instead of genome-wide.
 Indeed, running LDpred2 genome-wide has two drawbacks. First, it can be memory and computationally demanding to do so. For around one million (1M) variants, storing the 1M$\times$1M sparse correlation matrix takes more than 32 GB of memory. 
 Doubling to 2M variants would require 128 GB of RAM to store the matrix.
-Second, as noted in \cite{prive2019making}, it may be beneficial to assume that the architecture of traits is different for different chromosomes.
+Second, it may be beneficial to assume that the architecture of traits is different for different chromosomes.
 For example, chromosome 6 clearly encompasses a larger proportion of the heritability of autoimmune diseases compared to other chromosomes \cite[]{shi2016contrasting}.
 Assuming the same model for genetic effects genome-wide could result in model misspecification, which would lead to suboptimal predictive performance.
-Moreover, since the inverse of a block-diagonal matrix is formed from the inverse of each block, it should be safe to run LDpred2 for each chromosome and then combine the results (at least for LDpred-inf). 
 To choose the best LDpred2 model, one can choose the best model according to their preferred criterion (e.g. max AUC). 
 Here, we use the Z-Score from the regression of the phenotype by the PRS since we have found it more robust than using the AUC when running LDpred2 per chromosome.
 
 \subsection*{Providing an LD reference}\label{sec:ld-ref}
 
-We provide an LD reference for European ancestry to be used by researchers who do not have access to a large dataset to be used as LD reference.
+We provide an LD reference for European ancestry to be used by researchers who cannot compute their own.
 We use the 362,320 UKBB individuals as used here, with some further quality control based on allele frequencies.
 Indeed, some large allele frequency mismatches have been reported recently in the UKBB when comparing to other datasets, which are apparently due to mismappings \cite[]{kunert2020allele}.
+Note that most of these errors should be captured by the quality control we propose in this paper.
 Using 503 European individuals from the 1000 Genomes (1000G) data, we remove variants with allele frequency differences between UKBB and 1000G at $p<10^{-5}$ (Figure \ref{fig:af-outliers}).
 We also remove variants with minor allele frequencies less than 1\% in the 1000G or less than 0.5\% in the UKBB.
 1,054,330 variants remain, which we use to compute the LD reference provided.
@@ -552,11 +561,12 @@ We also provide an example R script on how to use this LD reference provided.
 
 \section*{Software and code availability}
 
-%[TODO: EXPORT CODE FROM CLUSTER] 
-
-All code used for this paper is available at \url{https://github.com/privefl/paper-ldpred2/tree/master/code}.
 The newest version of R package bigsnpr can be installed from GitHub (see \url{https://github.com/privefl/bigsnpr}).
-A tutorial on the steps to run LDpred2 using some small example data is available at \url{https://privefl.github.io/bigsnpr/articles/LDpred2.html}. 
+A tutorial on the steps to run LDpred2 using some small example data is available at \url{https://privefl.github.io/bigsnpr/articles/LDpred2.html}.
+The European LD reference we provide here is available at \url{https://doi.org/10.6084/m9.figshare.13034123}.
+
+All code used for this paper is available at \url{https://github.com/privefl/paper-ldpred2/tree/master/code}. 
+We have extensively used R packages bigstatsr and bigsnpr \cite[]{prive2017efficient} for analyzing large genetic data, packages from the future framework \cite[]{bengtsson2020unifying} for easy scheduling and parallelization of analyses on the HPC cluster, and packages from the tidyverse suite \cite[]{wickham2019welcome} for shaping and visualizing results.
 
 \section*{Acknowledgements}
 
