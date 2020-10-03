@@ -92,7 +92,7 @@ Here we present LDpred2, a new version of LDpred that addresses these issues.
 We also provide two new options in LDpred2: a ``sparse'' option that can learn effects that are exactly 0, and an ``auto'' option that directly learns the two LDpred parameters from data.
 We benchmark predictive performance of LDpred2 against the previous version on simulated and real data, demonstrating substantial improvements in robustness and predictive accuracy compared to LDpred1.
 We then show that LDpred2 also outperforms other polygenic score methods recently developed, with a mean AUC over the 8 real traits analyzed here of 65.1\%, compared to 63.8\% for lassosum, 62.9\% for PRS-CS and 61.5\% for SBayesR.
-Note that, in contrast to what was recommended in the first version of this paper, we now recommend to run LDpred2 genome-wide instead of per chromosome.
+Note that LDpred2 provides more accurate polygenic scores when run genome-wide, instead of per chromosome.
 LDpred2 is implemented in R package bigsnpr.
 }
 
@@ -120,7 +120,7 @@ Here, we present LDpred2, a new version of LDpred that addresses these issues wh
 We provide this faster and more robust implementation of LDpred in R package bigsnpr \cite[]{prive2017efficient}.
 We also provide two new options in LDpred2. First, we provide a ``sparse'' option, where LDpred2 truly fits some effects to zero, therefore providing a sparse vector of effects. Second, we also provide an ``auto'' option, where LDpred2 automatically estimates the sparsity $p$ and the SNP heritability $h^2$, and therefore does not require validation data to tune hyper-parameters.
 We show that LDpred2 provides higher predictive performance than LDpred1 (LDpred v1.0.0), especially when there are causal variants in long-range LD regions, when the proportion of causal variants is small, and when GWAS sample size is large.
-We also show that the new sparse option performs equally well as the non-sparse version, enabling LDpred2 to provide sparse effects without losing prediction accuracy.
+We also show that the new sparse option performs equally well as the non-sparse version, enabling LDpred2 to provide sparse effects without losing any predictive accuracy.
 Moreover, LDpred2-auto, which does not require any validation set, performs almost as well as the main LDpred2 model that tunes hyper-parameters from a grid in a validation set, provided some quality control is performed on the summary statistics.
 
 
@@ -137,7 +137,7 @@ For users who do not particularly care about sparsity, they can still tune this 
 For this paper, in order to show the effect of this sparse option on predictive performance, we deliberately separate the LDpred2-grid method in two ``different'' methods that we call LDpred2-grid-nosp (sparse option always disabled) and LDpred2-grid-sp (sparse option always enabled) in the results.
 As a recall, LDpred v1 has two options: LDpred1-inf, and LDpred1-grid where only $p$ is tuned while $h^2$ is estimated from constrained LD score regression \cite[]{bulik2015ld}.
 
-We make use of the UK Biobank data to compare the two versions of LDpred using several simulation scenarios to understand the expected impact of using the new version of LDpred. We also compare these two versions of LDpred using eight case-control phenotypes of major interest and for which there are published external summary statistics available and a substantial number of cases in the UK Biobank data. 
+We use the UK Biobank data to compare the two versions of LDpred using several simulation scenarios to understand the expected impact of using the new version of LDpred. We also compare these two versions of LDpred using eight case-control phenotypes of major interest and for which there are published external summary statistics available and a substantial number of cases in the UK Biobank data. 
 We also compare running LDpred2 per chromosome (``perchr'', including choosing optimal hyper-paramaters) or genome-wide (``gwide'').
 Finally, we compare LDpred2 to several other methods: Clumping and Thresholding (C+T), Stacked C+T (SCT), lassosum, PRS-CS and SBayesR \cite[]{prive2019making,mak2017polygenic,ge2019polygenic,lloyd2019improved}.
 Area Under the ROC Curve (AUC) values are reported.
@@ -153,7 +153,10 @@ When testing a grid of hyper-parameters, LDpred2 performs substantially better t
 For example, in simulations with 300 causal variants, a mean AUC of 73.6\% is obtained with LDpred1 while a value of 81.7\% is obtained with LDpred2.
 In these scenarios, all non-infinitesimal models of LDpred2 perform equally well.
 As expected, LDpred1 performs poorly in HLA scenarios, i.e.\ when causal variants are located in a long-range LD region. 
-In contrast, all LDpred2 models perform well in these two HLA scenarios, but LDpred2-auto performs slightly worse than the other LDpred2 models in these extreme scenarios.
+In contrast, all LDpred2 models perform well in these two HLA scenarios, but LDpred2-auto performs slightly worse.
+There are two possible explanations for this: first, these two scenarios are very extreme scenarios where causal effects may have large effects in strong LD; second, because there is no contribution from the other chromosomes in these scenarios, any prediction added to the score from other chromosomes would be noise that could reduce the performance of the overall score.
+In the ``both\_40'' simulation scenario, where effects in HLA are generated with a smaller heritability (20\%) and where there are also other effects all over the genome contributing another 20\% of heritability, predictive performance of LDpred2-auto are on par with the other LDpred2 models.
+
 
 %% FIGURE 1 HERE
 \begin{figure}[htb]
@@ -228,7 +231,7 @@ In contrast, SBayesR does not underperforms for MDD but severely underperforms f
 
 \subsection*{Running LDpred2 per chromosome or genome-wide?}
 
-Most results show that it is beneficial to run LDpred2 genome-wide instead of per chromosome, contrary to was recommended in the first version of this paper.
+Most results show that it is beneficial to run LDpred2 genome-wide instead of per chromosome.
 Figure \ref{fig:AUC-simu2-ldpred2} shows that it can be beneficial to run all LDpred2 models genome-wide rather than per chromosome, especially when GWAS sample size is small.
 For example, in the simulation scenario with the sample size of 20,000, switching running LDpred2 per chromosome to running it genome-wide improves AUC of LDpred2-inf from 57.2\% to 57.7\%, LDpred2-grid from 58.6\% to 59.6\%, and LDpred2-auto from 57.3\% to 59.3\%.
 Note that the simulation scenario used to produce results in figure \ref{fig:AUC-simu2-ldpred2} is assuming the same genome-wide disease architecture, i.e.\ 3000 causal variants located anywhere on the genome and whose effects are drawn from the same normal distribution.
@@ -248,6 +251,7 @@ We hypothesize that LDpred1 does not use a LD window size that is large enough t
 In LDpred2, we use a window size of 3 cM, which is larger than the default value used in LDpred1.
 This enables LDpred2 to work well even when causal variants are located in long-range LD regions.
 We argue against removing these regions as sometimes suggested in the literature \cite[]{marquez2018modeling,lloyd2019improved} since these regions, especially the HLA region, contain many variants associated with many traits, and are therefore very useful for prediction.
+As sample size grows, the Gibbs sampler used in LDpred relies more on the LD being calculated and adjusted for appropriately, providing an intuitive explanation for why LDpred1 performs much worse than LDpred2 when GWAS sample size is large.
 Other modifications, such as a better handling of numerical errors when working with exponentials (equation \eqref{eq:postp}), or a larger hyper-parameter search space, may also contribute to the improved robustness in LDpred2.
 
 In LDpred2, we also expand the grid of hyper-parameters examined with now more values for $p$ (21 instead of 7 by default in LDpred1) and for $h^2$ (3 instead of 1).
@@ -258,7 +262,7 @@ The efficiency of LDpred2 is achieved through an efficient parallel implementati
 Efficient parallelization over the grid of hyper-parameters is possible because we use an on-disk sparse matrix format accessed using memory mapping. 
 This special data format is available in R package bigsparser, which has been developed for this paper. 
 As an example, it takes less than three hours in total to run LDpred2-inf, LDpred2-grid (126 hyper-parameter values parallelized over 8 cores) and LDpred2-auto (30 initial values for $p$ parallelized over 8 cores) for a chromosome with 100,000 variants.
-It takes less than 36 hours to run all these LDpred2 models over 1.1 million HapMap3 variants at once (genome-wide).
+It takes between 12 and 36 hours to run all these LDpred2 models over 1.1 million HapMap3 variants at once (genome-wide); LDpred1 takes a similar time.
 It takes 11 minutes to pre-compute the LD matrix for 10,000 individuals and 100,000 variants (using 16 cores).
 
 LDpred2 also extends the original LDpred model in two ways.
@@ -563,7 +567,8 @@ We also provide an example R script on how to use this LD reference provided.
 
 The newest version of R package bigsnpr can be installed from GitHub (see \url{https://github.com/privefl/bigsnpr}).
 A tutorial on the steps to run LDpred2 using some small example data is available at \url{https://privefl.github.io/bigsnpr/articles/LDpred2.html}.
-The European LD reference we provide here is available at \url{https://doi.org/10.6084/m9.figshare.13034123}.
+The European LD reference we provide here is available at \url{https://doi.org/10.6084/m9.figshare.13034123}. 
+We note that this is LD summary data and not individual-level data.
 
 All code used for this paper is available at \url{https://github.com/privefl/paper-ldpred2/tree/master/code}. 
 We have extensively used R packages bigstatsr and bigsnpr \cite[]{prive2017efficient} for analyzing large genetic data, packages from the future framework \cite[]{bengtsson2020unifying} for easy scheduling and parallelization of analyses on the HPC cluster, and packages from the tidyverse suite \cite[]{wickham2019welcome} for shaping and visualizing results.
