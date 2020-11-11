@@ -72,4 +72,4 @@
 
 - `plot-params`: Figures S4 and S5
 
-- `plot-approx-sd`: Figures S6 and S7
+- `plot-approx-sd`: Figures S6-S9
