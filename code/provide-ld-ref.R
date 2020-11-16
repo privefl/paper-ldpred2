@@ -54,13 +54,6 @@ map_keep <- map[ind_keep, ]
 map_keep$af_UKBB <- af_UKBB[which(!is_bad)]
 vctrs::vec_duplicate_any(map_keep[, 1:2])  # FALSE
 
-# add positions in different builds
-liftOver <- runonce::download_file(
-  "http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/liftOver", "tmp-data")
-bigsnpr:::make_executable(liftOver)
-map_keep$pos_hg19 <- snp_modifyBuild(map_keep, liftOver, to = "hg19")$pos
-map_keep$pos_hg17 <- snp_modifyBuild(map_keep, liftOver, to = "hg17")$pos
-
 bigassertr::assert_dir("ld-ref")
 
 #### Compute LD matrices ####
@@ -96,5 +89,13 @@ map_keep$ld <- do.call('c', lapply(1:22, function(chr) {
   corr_chr <- readRDS(paste0("ld-ref/LD_chr", chr, ".rds"))
   Matrix::colSums(corr_chr^2)
 }))
+
+# add positions in different builds
+liftOver <- runonce::download_file(
+  "http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/liftOver", "tmp-data")
+bigsnpr:::make_executable(liftOver)
+map_keep$pos_hg17 <- snp_modifyBuild(map_keep, liftOver, from = "hg19", to = "hg17")$pos
+map_keep$pos_hg18 <- snp_modifyBuild(map_keep, liftOver, from = "hg19", to = "hg18")$pos
+map_keep$pos_hg38 <- snp_modifyBuild(map_keep, liftOver, from = "hg19", to = "hg38")$pos
 
 saveRDS(map_keep, "ld-ref/map.rds", version = 2)
