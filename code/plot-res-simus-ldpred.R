@@ -58,19 +58,38 @@ library(ggplot2)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
                "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-ggplot(auc_simu, aes(params, mean, fill = Method, color = Method)) +
-  bigstatsr::theme_bigstatsr() +
-  geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_col(position = position_dodge(), alpha = 0.6, color = "black", size = 1) +
-  geom_errorbar(aes(ymin = inf, ymax = sup),
-                position = position_dodge(width = 0.9), color = "black", width = 0.2, size = 1) +
-  scale_y_continuous(limits = c(0.5, 0.92), minor_breaks = 0:50 / 50,
-                     oob = scales::rescale_none) +
-  labs(x = "Simulation", y = "AUC") +
-  theme(legend.position = c(0.45, 0.8)) +
-  scale_fill_manual(values = cbPalette[c(6, 7, 4, 2, 5, 8)])
+plot_grid(
+  ggplot(filter(auc_simu, startsWith(params, "all_")),
+         aes(params, mean, fill = Method, color = Method)) +
+    bigstatsr::theme_bigstatsr() +
+    geom_hline(yintercept = 0.5, linetype = 2) +
+    geom_col(position = position_dodge(), alpha = 0.6, color = "black", size = 1) +
+    geom_errorbar(aes(ymin = inf, ymax = sup),
+                  position = position_dodge(width = 0.9), color = "black", width = 0.2, size = 1) +
+    scale_y_continuous(limits = c(0.5, 0.85), minor_breaks = 0:50 / 50,
+                       oob = scales::rescale_none) +
+    labs(x = "Simulation (with effects everywhere)", y = "AUC") +
+    theme(legend.position = c(0.76, 0.8)) +
+    scale_fill_manual(values = cbPalette[c(6, 7, 4, 2, 5, 8)]),
 
-# ggsave("figures/AUC-simu.pdf", width = 12.5, height = 6.5)
+  ggplot(filter(auc_simu, !startsWith(params, "all_")),
+         aes(params, mean, fill = Method, color = Method)) +
+    bigstatsr::theme_bigstatsr() +
+    geom_hline(yintercept = 0.5, linetype = 2) +
+    geom_col(position = position_dodge(), alpha = 0.6, color = "black", size = 1) +
+    geom_errorbar(aes(ymin = inf, ymax = sup),
+                  position = position_dodge(width = 0.9), color = "black", width = 0.2, size = 1) +
+    scale_y_continuous(limits = c(0.5, 0.85), minor_breaks = 0:50 / 50,
+                       oob = scales::rescale_none) +
+    labs(x = "Simulation (with large effects in HLA)", y = NULL) +
+    theme(legend.position = "none") +
+    scale_fill_manual(values = cbPalette[c(6, 7, 4, 2, 5, 8)]),
+
+  # labels = LETTERS[1:2], label_size = 18,
+  scale = 0.95, nrow = 1, rel_widths = c(4, 3), align = "hv"
+)
+
+# ggsave("figures/AUC-simu.pdf", width = 15, height = 7)
 
 auc_simu %>%
   mutate_at(3:5, ~ round(. * 100, 1)) %>%
