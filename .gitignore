@@ -6,3 +6,5 @@ tmp-figures/
 tmp-data/
 figures/
 code/README.html
+paper/cabios-template/*
+!paper/cabios-template/main.tex
