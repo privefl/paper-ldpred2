@@ -63,7 +63,7 @@ for (chr in 1:22) {
   corr_chr <- readRDS(paste0("ld-ref/LD_chr", chr, ".rds"))[ind.chr3, ind.chr3]
 
   if (chr == 1) {
-    corr <- as_SFBM(corr_chr, tmp)
+    corr <- as_SFBM(corr_chr, tmp, compact = TRUE)
   } else {
     corr$add_columns(corr_chr, nrow(corr))
   }
